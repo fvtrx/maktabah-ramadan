@@ -33,7 +33,7 @@ interface HadithState {
   books: string[];
   bookOptions: string[];
   narrators: string[];
-  bookmarks: Bookmark[];
+  bookmarks: (Bookmark | { id: number; hadithId: number; dateAdded: string })[];
 
   // UI state
   isLoading: boolean;
@@ -61,7 +61,12 @@ interface HadithState {
   setNarrators: (narrators: string[]) => void;
   addBookmark: (bookmark: Bookmark) => void;
   removeBookmark: (id: number) => void;
-  setBookmarks: (bookmarks: Bookmark[]) => void;
+  setBookmarks: (
+    bookmarks: (
+      | Bookmark
+      | { id: number; hadithId: number; dateAdded: string }
+    )[]
+  ) => void;
   setShowBookmarks: (show: boolean) => void;
   setDisplayLanguage: (language: DisplayLanguage) => void;
   setSearchTerm: (term: string) => void;

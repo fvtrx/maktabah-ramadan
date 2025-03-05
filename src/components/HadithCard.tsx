@@ -5,7 +5,7 @@ import GradeBadge from "./GradeBadge";
 type Props = {
   hadith: Hadith;
   viewHadithDetails: (hadith: Hadith) => void;
-  bookmarks: Bookmark[];
+  bookmarks: (Bookmark | { id: number; hadithId: number; dateAdded: string })[];
   toggleBookmark: (
     id: number,
     event: React.MouseEvent<HTMLButtonElement>

@@ -255,9 +255,28 @@ const HadithSearchApp: React.FC = () => {
     event.stopPropagation();
 
     const isBookmarked = bookmarks.some((bookmark) => bookmark.id === id);
-    const newBookmarks = isBookmarked
-      ? bookmarks.filter((bookmark) => bookmark.id !== id)
-      : [...bookmarks];
+    let newBookmarks;
+
+    if (isBookmarked) {
+      // Remove the bookmark if it's already bookmarked
+      newBookmarks = bookmarks.filter((bookmark) => bookmark.id !== id);
+    } else {
+      // Add the bookmark if it's not already bookmarked
+      // Based on the error, we can see that Bookmark and Hadith are different types
+      // We need to find the hadith and store its ID in the bookmarks array
+      const hadithToBookmark = hadiths.find((hadith) => hadith.id === id);
+      if (hadithToBookmark) {
+        // Create a new bookmark object with the required structure
+        const newBookmark = {
+          id: hadithToBookmark.id,
+          hadithId: hadithToBookmark.id,
+          dateAdded: new Date().toISOString(),
+        };
+        newBookmarks = [...bookmarks, newBookmark];
+      } else {
+        newBookmarks = [...bookmarks];
+      }
+    }
 
     setBookmarks(newBookmarks);
     localStorage.setItem("hadithBookmarks", JSON.stringify(newBookmarks));

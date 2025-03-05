@@ -4,7 +4,7 @@ import GradeBadge from "./GradeBadge";
 
 type Props = {
   selectedHadith: Hadith;
-  bookmarks: Bookmark[];
+  bookmarks: (Bookmark | { id: number; hadithId: number; dateAdded: string })[];
   closeHadithDetails: () => void;
   toggleBookmark: (
     id: number,
