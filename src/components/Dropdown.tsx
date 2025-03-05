@@ -61,7 +61,7 @@ const Dropdown: React.FC<DropdownProps> = ({
         {/* Dropdown menu */}
         {isOpen && (
           <div className="absolute z-10 w-full mt-1 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden transition-all duration-200 animate-in fade-in-50 slide-in-from-top-2">
-            <ul className="py-1 max-h-60 overflow-auto">
+            <ul className="py-1 max-h-60 overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               <li>
                 <button
                   className={`w-full text-left px-4 py-2 hover:bg-gray-50 ${
