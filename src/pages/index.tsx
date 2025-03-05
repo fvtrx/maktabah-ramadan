@@ -5,7 +5,7 @@ import HadithDetailsModal from "@src/components/HadithDetailsModal";
 import { Hadith, useHadithStore } from "@src/store";
 import React, { useEffect } from "react";
 
-const HadithSearchApp: React.FC = () => {
+const MainPage: React.FC = () => {
   const {
     hadiths,
     filteredHadiths,
@@ -425,4 +425,4 @@ const HadithSearchApp: React.FC = () => {
   );
 };
 
-export default HadithSearchApp;
+export default MainPage;
