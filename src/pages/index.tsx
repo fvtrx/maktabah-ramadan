@@ -1,3 +1,4 @@
+import Layout from "@src/components/common/Layout";
 import FilterHadithSidebar from "@src/components/FilterHadithSidebar";
 import HadithCard from "@src/components/HadithCard";
 import HadithDetailsModal from "@src/components/HadithDetailsModal";
@@ -305,119 +306,125 @@ const HadithSearchApp: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-100 py-4 px-6 bg-white sticky top-0 z-10">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={toggleSidebar}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Toggle sidebar"
-            >
-              ☰
-            </button>
-            <h1 className="text-2xl font-bold">Maktabah Ramadan</h1>
-          </div>
-
-          {/* Language switcher */}
-          <div className="flex gap-1 text-sm bg-gray-50 rounded-full overflow-hidden">
-            <button
-              className={`px-4 py-2 ${
-                displayLanguage === "both" ? "bg-gray-900 text-white" : ""
-              }`}
-              onClick={() => setDisplayLanguage("both")}
-            >
-              Both
-            </button>
-            <button
-              className={`px-4 py-2 ${
-                displayLanguage === "arabic" ? "bg-gray-900 text-white" : ""
-              }`}
-              onClick={() => setDisplayLanguage("arabic")}
-            >
-              Arabic
-            </button>
-            <button
-              className={`px-4 py-2 ${
-                displayLanguage === "english" ? "bg-gray-900 text-white" : ""
-              }`}
-              onClick={() => setDisplayLanguage("english")}
-            >
-              English
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="flex flex-1 overflow-hidden">
-        {/* Search sidebar */}
-        <FilterHadithSidebar
-          isSidebarOpen={isSidebarOpen}
-          searchTerm={searchTerm}
-          handleSearchChange={(e) => {
-            setSearchTerm(e.target.value);
-          }}
-        />
-
-        {/* Results */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex justify-center items-center h-full">
-              <p>Loading...</p>
-            </div>
-          ) : filteredHadiths.length > 0 ? (
-            <div className="space-y-6">
-              {filteredHadiths.map((hadith) => (
-                <HadithCard
-                  key={hadith.id}
-                  hadith={hadith}
-                  viewHadithDetails={(hadith) => {
-                    setSelectedHadith(hadith);
-                  }}
-                  displayLanguage={displayLanguage}
-                  bookmarks={bookmarks}
-                  toggleBookmark={toggleBookmark}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <p className="text-gray-400 mb-4">
-                No hadith found matching your search criteria.
-              </p>
+    <Layout
+      title="Maktabah Ramadan"
+      description="Sebuah platform yang menghimpunkan kesemua hadis-hadis yang berkaitan dengan bulan Ramadan"
+      keywords="hadis, ramadan, maktabah-ramadan"
+    >
+      <div className="flex flex-col h-screen bg-white text-gray-900">
+        {/* Header */}
+        <header className="border-b border-gray-100 py-4 px-6 bg-white sticky top-0 z-10">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
               <button
-                className="text-sm text-gray-500 border p-2 rounded-sm relative overflow-hidden group hover:cursor-pointer"
-                onClick={resetFilters}
+                onClick={toggleSidebar}
+                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                aria-label="Toggle sidebar"
               >
-                <span className="relative z-10 transition-colors duration-150 group-hover:text-white">
-                  Clear filters
-                </span>
-                <span className="absolute inset-0 bg-black/80 transform scale-x-0 origin-left transition-transform duration-150 ease-in-out group-hover:scale-x-100"></span>
+                ☰
+              </button>
+              <h1 className="text-2xl font-bold">Maktabah Ramadan</h1>
+            </div>
+
+            {/* Language switcher */}
+            <div className="flex gap-1 text-sm bg-gray-50 rounded-full overflow-hidden">
+              <button
+                className={`px-4 py-2 ${
+                  displayLanguage === "both" ? "bg-gray-900 text-white" : ""
+                }`}
+                onClick={() => setDisplayLanguage("both")}
+              >
+                Both
+              </button>
+              <button
+                className={`px-4 py-2 ${
+                  displayLanguage === "arabic" ? "bg-gray-900 text-white" : ""
+                }`}
+                onClick={() => setDisplayLanguage("arabic")}
+              >
+                Arabic
+              </button>
+              <button
+                className={`px-4 py-2 ${
+                  displayLanguage === "english" ? "bg-gray-900 text-white" : ""
+                }`}
+                onClick={() => setDisplayLanguage("english")}
+              >
+                English
               </button>
             </div>
-          )}
-        </div>
-      </main>
+          </div>
+        </header>
 
-      {/* Hadith detail modal */}
-      {selectedHadith && (
-        <HadithDetailsModal
-          selectedHadith={selectedHadith}
-          closeHadithDetails={closeHadithDetails}
-          toggleBookmark={toggleBookmark}
-          bookmarks={bookmarks}
-          displayLanguage={displayLanguage}
-          copyHadithText={copyHadithText}
-        />
-      )}
+        {/* Main content */}
+        <main className="flex flex-1 overflow-hidden">
+          {/* Search sidebar */}
+          <FilterHadithSidebar
+            isSidebarOpen={isSidebarOpen}
+            searchTerm={searchTerm}
+            handleSearchChange={(e) => {
+              setSearchTerm(e.target.value);
+            }}
+          />
 
-      {/* Footer */}
-      <footer className="py-4 px-6 border-t border-gray-100 text-center text-gray-400 text-sm">
-        Maktabah Ramadan • Designed with modern simplicity
-      </footer>
-    </div>
+          {/* Results */}
+          <div className="flex-1 p-6 overflow-y-auto">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <p>Loading...</p>
+              </div>
+            ) : filteredHadiths.length > 0 ? (
+              <div className="space-y-6">
+                {filteredHadiths.map((hadith) => (
+                  <HadithCard
+                    key={hadith.id}
+                    hadith={hadith}
+                    viewHadithDetails={(hadith) => {
+                      setSelectedHadith(hadith);
+                    }}
+                    displayLanguage={displayLanguage}
+                    bookmarks={bookmarks}
+                    toggleBookmark={toggleBookmark}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <p className="text-gray-400 mb-4">
+                  No hadith found matching your search criteria.
+                </p>
+                <button
+                  className="text-sm text-gray-500 border p-2 rounded-sm relative overflow-hidden group hover:cursor-pointer"
+                  onClick={resetFilters}
+                >
+                  <span className="relative z-10 transition-colors duration-150 group-hover:text-white">
+                    Clear filters
+                  </span>
+                  <span className="absolute inset-0 bg-black/80 transform scale-x-0 origin-left transition-transform duration-150 ease-in-out group-hover:scale-x-100"></span>
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+
+        {/* Hadith detail modal */}
+        {selectedHadith && (
+          <HadithDetailsModal
+            selectedHadith={selectedHadith}
+            closeHadithDetails={closeHadithDetails}
+            toggleBookmark={toggleBookmark}
+            bookmarks={bookmarks}
+            displayLanguage={displayLanguage}
+            copyHadithText={copyHadithText}
+          />
+        )}
+
+        {/* Footer */}
+        <footer className="py-4 px-6 border-t border-gray-100 text-center text-gray-400 text-sm">
+          Maktabah Ramadan • Designed with modern simplicity
+        </footer>
+      </div>
+    </Layout>
   );
 };
 
