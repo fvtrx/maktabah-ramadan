@@ -356,9 +356,7 @@ const HadithSearchApp: React.FC = () => {
           </div>
         </header>
 
-        {/* Main content */}
         <main className="flex flex-1 overflow-hidden">
-          {/* Search sidebar */}
           <FilterHadithSidebar
             isSidebarOpen={isSidebarOpen}
             searchTerm={searchTerm}
@@ -367,7 +365,6 @@ const HadithSearchApp: React.FC = () => {
             }}
           />
 
-          {/* Results */}
           <div className="flex-1 p-6 overflow-y-auto">
             {isLoading ? (
               <div className="flex justify-center items-center h-full">
