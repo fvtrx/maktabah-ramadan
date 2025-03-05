@@ -3,7 +3,8 @@ import FilterHadithSidebar from "@src/components/FilterHadithSidebar";
 import HadithCard from "@src/components/HadithCard";
 import HadithDetailsModal from "@src/components/HadithDetailsModal";
 import { Hadith, useHadithStore } from "@src/store";
-import React, { useEffect } from "react";
+import useToast from "@src/utils/hooks/useToast";
+import React, { useEffect, useState } from "react";
 
 const MainPage: React.FC = () => {
   const {
@@ -38,6 +39,9 @@ const MainPage: React.FC = () => {
     resetFilters,
     toggleSidebar,
   } = useHadithStore();
+
+  const toast = useToast();
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const mockHadiths: Hadith[] = [
@@ -289,7 +293,7 @@ const MainPage: React.FC = () => {
   };
 
   // Copy hadith text
-  const copyHadithText = (text: string, arabicText: string) => {
+  const copyHadithText = async (text: string, arabicText: string) => {
     let copyText = "";
 
     if (displayLanguage === "both") {
@@ -300,9 +304,27 @@ const MainPage: React.FC = () => {
       copyText = text;
     }
 
-    navigator.clipboard.writeText(copyText).then(() => {
-      alert("Hadith copied to clipboard");
-    });
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(copyText);
+      } else {
+        // Fallback for browsers without clipboard API
+        const textArea = document.createElement("textarea");
+        textArea.value = copyText;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+      toast.open({
+        content: "Hadith copied successfully!",
+        variant: "success",
+      });
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy text:", err);
+    }
   };
 
   return (
@@ -412,6 +434,7 @@ const MainPage: React.FC = () => {
             toggleBookmark={toggleBookmark}
             bookmarks={bookmarks}
             displayLanguage={displayLanguage}
+            isCopied={copied}
             copyHadithText={copyHadithText}
           />
         )}

@@ -12,6 +12,7 @@ type Props = {
   ) => void;
   displayLanguage: DisplayLanguage;
   copyHadithText: (text: string, arabicText: string) => void;
+  isCopied: boolean;
 };
 
 const HadithDetailsModal: FC<Props> = ({
@@ -21,6 +22,7 @@ const HadithDetailsModal: FC<Props> = ({
   bookmarks,
   displayLanguage,
   copyHadithText,
+  isCopied,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -191,22 +193,22 @@ const HadithDetailsModal: FC<Props> = ({
             }}
           >
             <button
-              className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm"
-              style={{ transition: "all 150ms ease" }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#1f2937";
-                e.currentTarget.style.boxShadow =
-                  "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+              disabled={isCopied}
+              className={`px-4 py-2 rounded-full text-sm cursor-pointer disabled:cursor-not-allowed transition-all duration-150 ease-in-out ${
+                isCopied
+                  ? "bg-gray-400 text-white cursor-not-allowed opacity-70"
+                  : "bg-gray-900 text-white hover:bg-gray-800 hover:shadow-md active:transform active:scale-95"
+              }`}
+              onClick={() => {
+                if (!isCopied) {
+                  copyHadithText(
+                    selectedHadith.text,
+                    selectedHadith.arabicText
+                  );
+                }
               }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#111827";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-              onClick={() =>
-                copyHadithText(selectedHadith.text, selectedHadith.arabicText)
-              }
             >
-              Copy text
+              {isCopied ? "Copied!" : "Copy text"}
             </button>
 
             <button

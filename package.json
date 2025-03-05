@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/typography": "^0.5.16",
     "lodash": "^4.17.21",
     "lucide-react": "^0.477.0",
     "next": "15.2.0",
