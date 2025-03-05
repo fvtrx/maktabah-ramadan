@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 
 export const TOAST_TIMEOUT = 5000;
 const TOAST_FADEOUT_DELAY = 500;
+const TOAST_FADEIN_DURATION = 300;
 
 const iconStyle =
   "relative rounded-full p-3 mr-4 after:absolute after:rounded-full";
@@ -62,6 +63,15 @@ const Toast = ({
   variant = "general",
 }: ToastProps) => {
   const [fadeOut, triggerFadeOut] = useState(false);
+  const [fadeIn, setFadeIn] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFadeIn(true);
+    }, 10);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleClose = () => {
     triggerFadeOut(true);
@@ -93,8 +103,13 @@ const Toast = ({
   return (
     <div
       className={`my-4 flex w-[640px] items-center rounded-lg bg-white p-4 shadow-2xl ${
-        fadeOut ? "opacity-0" : "opacity-100"
+        fadeOut ? "opacity-0" : fadeIn ? "opacity-100" : "opacity-0"
       } transition-opacity duration-500`}
+      style={{
+        transitionDuration: fadeOut
+          ? `${TOAST_FADEOUT_DELAY}ms`
+          : `${TOAST_FADEIN_DURATION}ms`,
+      }}
     >
       {ICON[variant]}
       <div>

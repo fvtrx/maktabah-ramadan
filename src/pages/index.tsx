@@ -265,6 +265,11 @@ const MainPage: React.FC = () => {
     if (isBookmarked) {
       // Remove the bookmark if it's already bookmarked
       newBookmarks = bookmarks.filter((bookmark) => bookmark.id !== id);
+
+      toast.open({
+        content: "Hadith removed from bookmarks",
+        variant: "success",
+      });
     } else {
       // Add the bookmark if it's not already bookmarked
       // Based on the error, we can see that Bookmark and Hadith are different types
@@ -278,6 +283,11 @@ const MainPage: React.FC = () => {
           dateAdded: new Date().toISOString(),
         };
         newBookmarks = [...bookmarks, newBookmark];
+
+        toast.open({
+          content: "Hadith bookmarked!",
+          variant: "success",
+        });
       } else {
         newBookmarks = [...bookmarks];
       }
