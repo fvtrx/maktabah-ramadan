@@ -1,4 +1,5 @@
 import { Bookmark, DisplayLanguage, Hadith } from "@src/store";
+import startCase from "lodash/startCase";
 import { FC } from "react";
 
 type Props = {
@@ -35,9 +36,12 @@ const HadithCard: FC<Props> = ({
               : "☆"}
           </button>
           <div>
-            <h3 className="font-medium">{hadith.collection}</h3>
+            <h3 className="font-medium">
+              {startCase(hadith.chapter.toLowerCase())}
+            </h3>
             <p className="text-sm text-gray-500">
-              {hadith.book} #{hadith.number} • {hadith.narrator}
+              {hadith.collection} • {hadith.narrator} • {hadith.book} #
+              {hadith.number}
             </p>
           </div>
         </div>
@@ -63,17 +67,17 @@ const HadithCard: FC<Props> = ({
         )} */}
       </div>
 
-      {/* <div className="flex flex-wrap mt-4 gap-1">
+      <div className="flex flex-wrap mt-4 gap-1">
         {hadith.topics &&
           hadith.topics.map((topic) => (
             <span
               key={topic}
               className="text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-500"
             >
-              {topic}
+              {startCase(topic)}
             </span>
           ))}
-      </div> */}
+      </div>
     </div>
   );
 };

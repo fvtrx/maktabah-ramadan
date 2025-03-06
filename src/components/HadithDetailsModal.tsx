@@ -1,5 +1,6 @@
 import { Bookmark, DisplayLanguage, Hadith } from "@src/store";
 import { captureAndShareModal } from "@src/utils/helpers/shareHadith"; // Import the screenshot function
+import startCase from "lodash/startCase";
 import React, { FC, useEffect, useRef, useState } from "react";
 
 type Props = {
@@ -83,10 +84,15 @@ const HadithDetailsModal: FC<Props> = ({
         ref={modalContentRef}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
-          <h2 className="text-xl font-semibold">
-            {selectedHadith.collection}: {selectedHadith.book} #
-            {selectedHadith.number}
-          </h2>
+          <div className="flex items-start flex-col gap-2 max-w-[620px]">
+            <h2 className="text-xl font-semibold">
+              {startCase(selectedHadith.chapter.toLowerCase())}
+            </h2>
+            <p className="text-sm text-gray-400 text-wrap">
+              {selectedHadith.source}
+            </p>
+          </div>
+
           <div className="flex items-center space-x-4">
             <button
               className="text-lg text-gray-400 hover:text-yellow-500"
@@ -107,15 +113,6 @@ const HadithDetailsModal: FC<Props> = ({
           </div>
         </div>
         <div className="p-4 px-6.5 pt-2.5 overflow-y-auto max-h-[70vh] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <div className="flex flex-wrap justify-between items-center mb-6">
-            <div className="mb-2 md:mb-0">
-              <p className="text-sm text-gray-500">{selectedHadith.chapter}</p>
-              <p className="text-sm text-gray-400">{selectedHadith.source}</p>
-            </div>
-
-            {/* <GradeBadge grade={selectedHadith.grade} /> */}
-          </div>
-
           <div className="mb-6">
             <h3 className="text-sm text-gray-500 mb-2">Diriwayatkan oleh:</h3>
             <p className="text-gray-700">{selectedHadith.narrator}</p>
@@ -184,6 +181,19 @@ const HadithDetailsModal: FC<Props> = ({
                 >{`${item}`}</li>
               );
             })}
+          </div>
+
+          <div className="flex flex-wrap pt-6 gap-2 place-items-center">
+            <p className="text-sm  text-gray-500">Kata kunci:</p>
+            {selectedHadith.topics &&
+              selectedHadith.topics.map((topic) => (
+                <span
+                  key={topic}
+                  className="text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-500"
+                >
+                  {startCase(topic)}
+                </span>
+              ))}
           </div>
         </div>
 
