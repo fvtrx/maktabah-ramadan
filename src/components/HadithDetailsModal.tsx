@@ -70,7 +70,7 @@ const HadithDetailsModal: FC<Props> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-100">
-          <h2 className="text-xl font-light">
+          <h2 className="text-xl font-semibold">
             {selectedHadith.collection}: {selectedHadith.book} #
             {selectedHadith.number}
           </h2>
