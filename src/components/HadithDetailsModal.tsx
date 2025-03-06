@@ -93,7 +93,7 @@ const HadithDetailsModal: FC<Props> = ({
             </button>
           </div>
         </div>
-        <div className="p-6 pt-2.5 overflow-y-auto max-h-[70vh]">
+        <div className="p-6 pt-2.5 overflow-y-auto max-h-[70vh] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <div className="flex flex-wrap justify-between items-center mb-6">
             <div className="mb-2 md:mb-0">
               <p className="text-sm text-gray-500">{selectedHadith.chapter}</p>
@@ -111,23 +111,6 @@ const HadithDetailsModal: FC<Props> = ({
           </div>
 
           <div className="space-y-6">
-            {(displayLanguage === "english" || displayLanguage === "both") && (
-              <div
-                style={{
-                  opacity: isOpen ? 1 : 0,
-                  transform: isOpen ? "translateY(0)" : "translateY(8px)",
-                  transition: "opacity 400ms ease, transform 400ms ease",
-                  transitionDelay: "100ms",
-                  willChange: "opacity, transform",
-                }}
-              >
-                <h3 className="text-sm text-gray-500 mb-2">English</h3>
-                <p className="text-gray-700 leading-relaxed">
-                  {selectedHadith.text}
-                </p>
-              </div>
-            )}
-
             {(displayLanguage === "arabic" || displayLanguage === "both") && (
               <div
                 style={{
@@ -145,6 +128,23 @@ const HadithDetailsModal: FC<Props> = ({
                   lang="ar"
                 >
                   {selectedHadith.arabicText}
+                </p>
+              </div>
+            )}
+
+            {(displayLanguage === "english" || displayLanguage === "both") && (
+              <div
+                style={{
+                  opacity: isOpen ? 1 : 0,
+                  transform: isOpen ? "translateY(0)" : "translateY(8px)",
+                  transition: "opacity 400ms ease, transform 400ms ease",
+                  transitionDelay: "100ms",
+                  willChange: "opacity, transform",
+                }}
+              >
+                <h3 className="text-sm text-gray-500 mb-2">English</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  {selectedHadith.text}
                 </p>
               </div>
             )}
