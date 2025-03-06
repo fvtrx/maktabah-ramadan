@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 // Type definitions
-export type DisplayLanguage = "arabic" | "english" | "both";
+export type DisplayLanguage = "arabic" | "malay" | "both";
 export type HadithGrade = "sahih" | "hasan" | "hasan_sahih" | "daif";
 
 export interface Hadith {
@@ -9,13 +9,13 @@ export interface Hadith {
   collection: string;
   book: string;
   number: string;
+  source: string;
   narrator: string;
-  text: string;
-  arabicText: string;
-  grade: HadithGrade;
+  translation: string;
+  arabicText?: string;
   chapter: string;
-  topics: string[];
-  reference: string;
+  topics?: string[];
+  lessons: string[];
 }
 
 export interface Bookmark {
@@ -185,18 +185,13 @@ export const useHadithStore = create<HadithState>((set, get) => ({
       filtered = filtered.filter((h) => h.narrator === selectedNarrator);
     }
 
-    // Apply grade filter
-    if (selectedGrade !== "all") {
-      filtered = filtered.filter((h) => h.grade === selectedGrade);
-    }
-
     // Apply search term filter
     if (searchTerm.trim() !== "") {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (h) =>
-          h.text.toLowerCase().includes(term) ||
-          h.text.toLowerCase().includes(term)
+          h.translation.toLowerCase().includes(term) ||
+          h.translation.toLowerCase().includes(term)
       );
     }
 

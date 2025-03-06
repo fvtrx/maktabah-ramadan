@@ -1,22 +1,24 @@
 type Props = {
   text: string;
-  arabicText: string;
+  arabicText?: string;
   displayLanguage: string;
 };
 
 export const copyHadithText = async (
   callback: (val: boolean) => void,
-  { text, arabicText, displayLanguage }: Props
+  { text }: Props
 ) => {
   let copyText = "";
 
-  if (displayLanguage === "both") {
-    copyText = `${text}\n\n${arabicText}`;
-  } else if (displayLanguage === "arabic") {
-    copyText = arabicText;
-  } else {
-    copyText = text;
-  }
+  // if (displayLanguage === "both") {
+  //   copyText = `${text}\n\n${arabicText}`;
+  // } else if (displayLanguage === "arabic") {
+  //   copyText = arabicText;
+  // } else {
+  //   copyText = text;
+  // }
+
+  copyText = text;
 
   try {
     if (navigator.clipboard) {

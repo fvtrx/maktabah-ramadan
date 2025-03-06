@@ -51,101 +51,122 @@ const MainPage: React.FC<{ initialHadithId?: string }> = ({
     const mockHadiths: Hadith[] = [
       {
         id: 1,
-        collection: "Sahih Bukhari",
-        book: "Book of Revelation",
-        number: "1",
-        narrator: "Umar ibn Al-Khattab",
-        text: 'I heard Allah\'s Messenger (ﷺ) saying, "The reward of deeds depends upon the intentions and every person will get the reward according to what he has intended. So whoever emigrated for worldly benefits or for a woman to marry, his emigration was for what he emigrated for."',
-        arabicText:
-          "سَمِعْتُ رَسُولَ اللَّهِ صلى الله عليه وسلم يَقُولُ: إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوْ إِلَى امْرَأَةٍ يَنْكِحُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ",
-        grade: "sahih",
-        chapter: "How the Divine Revelation started",
-        topics: ["Intention", "Deeds", "Hijrah"],
-        reference: "Bukhari 1",
+        number: "16",
+        chapter: "PUASA RAMADAN ADALAH RUKUN ISLAM",
+        narrator: "Ibn 'Umar RA",
+        source:
+          "Riwayat Muslim, Kitab al-Iman, Bab Bayanu Arkani al-Islami wa Daáimihial-Ízhom, no. 16",
+        book: "Kitab al-Iman",
+        collection: "Riwayat Muslim",
+        translation:
+          "Daripada Ibn 'Umar RA, dari Nabi ﷺ bersabda: 'Islam dibangun di atas lima rukun; Mentauhidkan Allah, mendirikan solat, menunaikan zakat, berpuasa Ramadan dan (menunaikan) haji.' Lantas seorang lelaki bertanya: 'Apakah haji dan (kemudian) puasa Ramadan?' Baginda menjawab: 'Tidak, puasa Ramadan dan (kemudian) haji.' Demikianlah aku mendengarnya daripada Rasulullah ﷺ.'",
+        lessons: [
+          "Islam tertegak di atas lima rukun. Setiap rukun Islam mempunyai tuntutannya tersendiri yang hendaklah dilaksanakan oleh setiap muslim.",
+          "Berpuasa di bulan Ramadan merupakan rukun Islam yang ke-empat sebelum menunaikan haji. Ianya mengikut tuntutan yang lebih utama dalam kefarduannya.",
+          "Tanpa salah satu daripada rukun Islam ini, keislaman seseorang itu boleh musnah sebagaimana sebuah khemah yang mempunyai lima batang tiang tetapi apabila satu tiangnya patah akan merobohkan seluruh khemah tersebut.",
+        ],
       },
       {
         id: 2,
-        collection: "Sahih Muslim",
-        book: "Book of Faith",
-        number: "8",
-        narrator: "Abu Hurairah",
-        text: "I heard Allah's Messenger (ﷺ) saying, \"Islam is based on five principles: to testify that none has the right to be worshipped but Allah and Muhammad is Allah's Messenger, to offer the prayers, to pay the Zakat, to perform Hajj, and to observe fast during the month of Ramadan.\"",
-        arabicText:
-          "سَمِعْتُ رَسُولَ اللَّهِ صلى الله عليه وسلم يَقُولُ: بُنِيَ الْإِسْلَامُ عَلَى خَمْسٍ: شَهَادَةِ أَنْ لَا إِلَهَ إِلَّا اللَّهُ وَأَنَّ مُحَمَّدًا رَسُولُ اللَّهِ، وَإِقَامِ الصَّلَاةِ، وَإِيتَاءِ الزَّكَاةِ، وَالْحَجِّ، وَصَوْمِ رَمَضَانَ",
-        grade: "sahih",
-        chapter: "What is Islam and explanation of its qualities",
-        topics: ["Pillars of Islam", "Faith", "Fundamentals"],
-        reference: "Muslim 8",
+        number: "1891",
+        chapter: "KEFARDUAN PUASA",
+        narrator: "Talhah bin Ubaidullah RA",
+        source:
+          "Riwayat al-Bukhari, Kitab ash-Shiyam, Bab Wujubi Shaumi Ramadhan, no.1891",
+        book: "Kitab ash-Shiyam",
+        collection: "Riwayat al-Bukhari",
+        translation:
+          "Daripada Talhah bin Ubaidullah RA, bahawa seorang arab badwi menemui Rasulullah ﷺ dalam keadaan kepalanya penuh debu, lalu berkata: 'Ya Rasulullah, beritahukanlah kepadaku solat apakah yang Allah wajibkan atasku?.' Baginda ﷺ menjawab: 'Solat lima waktu, kecuali jika engkau suka mengerjakan solat sunat.' Si arab badwi tadi bertanya lagi: 'Beritahukanlah kepadaku puasa apakah yang Allah wajibkan bagiku?' Baginda ﷺ menjawab: 'Puasa bulan Ramadan, kecuali jika engkau suka mengerjakan puasa sunat.' Si arab badwi tadi bertanya lagi: 'Beritahukanlah kepadaku, zakat apakah yang Allah wajibkan atasku?', maka Rasulullah ﷺ memberitahukan kepadanya tentang syariat-syariat Islam, lalu arab badwi tersebut mengatakan: 'Demi Zat yang memuliakanmu, saya tidak suka melakukan yang sunat dan tidak akan mengurangi sedikitpun yang telah Allah fardhukan ke atas diriku.' Maka Rasulullah ﷺ bersabda: 'Dia seorang yang beruntung jika dia benar atau dia akan memasuki syurga jika dia benar.'",
+        lessons: [
+          "Setiap muslim diwajibkan melaksanakan ibadah fardu seperti solat, puasa dan zakat bagi memenuhi tuntutan amalan yang telah difardukan.",
+          "Dijelaskan bahawa ibadah fardu sudah memadai jika dilaksanakan dengan sempurna. Namun, ibadah sunat menjadi pelengkap kepada mana-mana kekurangan dalam amalan fardu tersebut.",
+          "Pelaksanaan ibadah fardu dengan sempurna akan mendapat ganjaran syurga dan diikuti dengan amalan sunat akan meningkatkan lagi nilai sesuatu amalan.",
+        ],
       },
       {
         id: 3,
-        collection: "Sunan Abu Dawud",
-        book: "Book of Prayer",
-        number: "123",
-        narrator: "Aisha",
-        text: 'The Prophet (ﷺ) said, "The prayer of a person who does not recite Al-Fatihah is invalid."',
-        arabicText:
-          "قَالَ النَّبِيُّ صلى الله عليه وسلم: لَا صَلَاةَ لِمَنْ لَمْ يَقْرَأْ بِفَاتِحَةِ الْكِتَابِ",
-        grade: "sahih",
-        chapter: "Prayer requirements",
-        topics: ["Prayer", "Quran", "Al-Fatihah"],
-        reference: "Abu Dawud 123",
+        chapter: "RAMADAN BULAN KETAATAN",
+        narrator: "Abu Hurairah RA",
+        source:
+          "Riwayat Ibnu Majah, Kitab ash-Shiyam, Bab Ma Jaá Fi Fadhli Syahru Ramadhana, no. 1642, berkata al-Arnaút: Hadith sahih dan sanadnya hasan",
+        book: "Kitab ash-Shiyam",
+        collection: "Riwayat Ibnu Majah",
+        number: "1642",
+        translation:
+          "Daripada Abu Hurairah RA, beliau berkata, Rasulullah ﷺ bersabda: 'Apabila tiba malam pertama bulan Ramadan, syaitan-syaitan dan jin-jin yang jahat dibelenggu, pintu-pintu neraka ditutup, tidak ada satupun pintunya yang terbuka. Pintu-pintu syurga dibuka, tidak ada satupun pintunya yang tertutup. Lalu seorang penyeru menyeru: 'Wahai yang mengharapkan kebaikan, bersegeralah (kepada ketaatan). Wahai yang mengharapkan keburukan, berhentilah (daripada melakukan keburukan). Allah SWT akan membebaskan hamba-hamba -Nya daripada api neraka dan perkara tersebut berlaku pada setiap malam (di bulan Ramadan).'",
+        lessons: [
+          "Allah SWT telah menjanjikan pada bulan Ramadan ganjaran pahala yang berganda-ganda.",
+          "Ramadan adalah kesempatan bagi orang yang berpuasa dapat menjalani amal ibadah dengan bersungguh-sungguh tanpa gangguan dan godaan daripada syaitan. Ini kerana, syaitan dan iblis akan dirantai serta dibelenggu.",
+          "Pintu neraka akan ditutup serapat-rapatnya dan pintu syurga dibuka seluas-luasnya bagi menyambut orang yang berpuasa dengan bersungguh-sungguh dengan melakukan amal kebaikan di bulan Ramadan.",
+        ],
       },
       {
         id: 4,
-        collection: "Sahih Bukhari",
-        book: "Book of Knowledge",
-        number: "79",
-        narrator: "Abu Musa",
-        text: "The Prophet (ﷺ) said, \"The example of guidance and knowledge with which Allah has sent me is like abundant rain falling on the earth. Some of the earth was fertile soil which absorbed rain water and brought forth vegetation and grass in abundance. Another portion of it was hard and held the rain water, and Allah benefited the people with it, they utilized it for drinking and irrigating the land for cultivation. A third portion was barren which could neither hold the water nor bring forth vegetation. The first is the example of the person who comprehends Allah's religion and gets benefit from the knowledge Allah has revealed through me and learns and then teaches others. The last example is that of a person who does not care for it and does not take Allah's guidance revealed through me.\"",
-        arabicText:
-          "قَالَ النَّبِيُّ صلى الله عليه وسلم: مَثَلُ مَا بَعَثَنِي اللَّهُ بِهِ مِنَ الْهُدَى وَالْعِلْمِ كَمَثَلِ غَيْثٍ أَصَابَ أَرْضًا فَكَانَتْ مِنْهَا طَائِفَةٌ طَيِّبَةٌ قَبِلَتِ الْمَاءَ فَأَنْبَتَتِ الْكَلَأَ وَالْعُشْبَ الْكَثِيرَ وَكَانَ مِنْهَا أَجَادِبُ أَمْسَكَتِ الْمَاءَ فَنَفَعَ اللَّهُ بِهَا النَّاسَ فَشَرِبُوا وَسَقَوْا وَزَرَعُوا وَأَصَابَ طَائِفَةً مِنْهَا أُخْرَى إِنَّمَا هِيَ قِيعَانٌ لَا تُمْسِكُ مَاءً وَلَا تُنْبِتُ كَلَأً فَذَلِكَ مَثَلُ مَنْ فَقُهَ فِي دِينِ اللَّهِ وَنَفَعَهُ مَا بَعَثَنِي اللَّهُ بِهِ فَعَلِمَ وَعَلَّمَ وَمَثَلُ مَنْ لَمْ يَرْفَعْ بِذَلِكَ رَأْسًا وَلَمْ يَقْبَلْ هُدَى اللَّهِ الَّذِي أُرْسِلْتُ بِهِ",
-        grade: "sahih",
-        chapter: "The superiority of knowledge",
-        topics: ["Knowledge", "Teaching", "Guidance"],
-        reference: "Bukhari 79",
+        chapter: "RAMADAN BULAN KEAMPUNAN",
+        narrator: "Abu Hurairah RA",
+        source:
+          "Riwayat al-Bukhari, Kitab al-Iman, Bab Shawmu Ramadhan Ihtisaban Mina al-Iman, no. 38",
+        book: "Kitab al-Iman",
+        collection: "Riwayat al-Bukhari",
+        number: "38",
+        translation:
+          "Daripada Abu Hurairah RA, daripada Nabi ﷺ bersabda: 'Sesiapa yang berpuasa Ramadan dengan penuh keimanan dan ihtisab (mengharapkan keredhaan Allah) akan diampunkan dosanya yang terdahulu.'",
+        lessons: [
+          "Ibadah puasa merupakan satu amalan yang dapat mendidik dan membentuk ketaqwaan seseorang hamba.",
+          "Disebalik kewajipan berpuasa itu, terdapat hakikat yang tersirat iaitu menanamkan kebiasaan mengadakan pengawasan terhadap diri sendiri dan menanam akhlak kesabaran di dalam jiwa setiap pelakunya.",
+          "Seorang hamba yang berpuasa terutamanya di bulan Ramadan, maka Allah SWT akan menghapuskan dosa-dosanya yang terdahulu dan apabila dosa seorang hamba diampunkan, maka hamba itu akan lebih dekat dengan ketaqwaan.",
+        ],
       },
       {
         id: 5,
-        collection: "Jami at-Tirmidhi",
-        book: "Book of Zuhd",
-        number: "2318",
-        narrator: "Abdullah bin Amr",
-        text: 'The Messenger of Allah (ﷺ) said, "Be in this world as if you were a stranger or a traveler."',
-        arabicText:
-          "قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم: كُنْ فِي الدُّنْيَا كَأَنَّكَ غَرِيبٌ أَوْ عَابِرُ سَبِيلٍ",
-        grade: "hasan_sahih",
-        chapter: "On having little regard for the world",
-        topics: ["Zuhd", "Worldly life", "Detachment"],
-        reference: "Tirmidhi 2318",
+        chapter: "MENDAPAT SYAFAAT DARIPADA PUASA & AL-QURAN",
+        narrator: "Abdullah bin Amru RA",
+        source:
+          "Riwayat Ahmad, Musnad al-Mukaththirin Mina ashShohabah, Musnad Abdullah bin Amru bin al-Ash RA, no. 6337, berkata Ahmad Syakir: Isnadnya Sahih",
+        book: "Musnad al-Mukaththirin Mina ashShohabah",
+        collection: "Riwayat Ahmad",
+        number: "6337",
+        translation:
+          "Daripada Abdullah bin Amru RA, bahawa Rasulullah ﷺ bersabda: 'Puasa dan alQuran akan memberikan syafaat kepada hamba (orang yang berpuasa dan yang sentiasa membaca al-Quran) di hari kiamat nanti. Puasa akan berkata: 'Wahai Tuhan! Sesungguhnya aku telah menahan hamba-Mu ini daripada makan, minum dan perkara syahwat pada waktu siang, maka terimalah syafaatku kepadanya.' Manakala al-Quran pula akan berkata: 'Wahai Tuhan! Sesungguhnya aku telah menahan hamba-Mu ini daripada tidur di malam hari, maka terimalah syafaatku kepadanya.' Baginda ﷺ bersabda: 'Maka Allah pun menerima kedua-dua syafaat tersebut.'",
+        lessons: [
+          "Pada hari kiamat nanti semua manusia akan membawa diri masing-masing kerana tiada siapa lagi dapat memberikan pertolongan pada hari tersebut. Namun selain daripada syafaat Nabi SAW ke atas umat Baginda, ibadah solat, puasa, membaca al-Quran dan amalan amalan kebaikan lain akan menjadi syafaat yang diterima oleh Allah.",
+          "Alangkah indah dan beruntungnya kehidupan seorang muslim yang senantiasa berpuasa pada waktu siangnya dan membaca al-Quran pada waktu malamnya di samping melakukan amal ibadah yang lain untuk mendekatkan diri kepada Allah SWT.",
+          "Sebaliknya, mereka yang mengabaikan perintah Allah akan berasa rugi dan kesal kerana melakukan amal ibadah tersebut secara sambil lewa. Bahkan amalanamalan tersebut akan mengutuk dan mendoakan kecelakaan kepada mereka di hari kiamat nanti.",
+        ],
       },
       {
         id: 6,
-        collection: "Sunan Ibn Majah",
-        book: "Book of Asceticism",
-        number: "4112",
-        narrator: "Abu Dharr",
-        text: 'The Messenger of Allah (ﷺ) said to me: "Fear Allah wherever you are, and follow an evil deed with a good one to wipe it out, and treat the people with good behavior."',
-        arabicText:
-          "قَالَ لِي رَسُولُ اللَّهِ صلى الله عليه وسلم: اتَّقِ اللَّهَ حَيْثُمَا كُنْتَ وَأَتْبِعِ السَّيِّئَةَ الْحَسَنَةَ تَمْحُهَا وَخَالِقِ النَّاسَ بِخُلُقٍ حَسَنٍ",
-        grade: "hasan",
-        chapter: "Good character",
-        topics: ["Taqwa", "Character", "Good deeds"],
-        reference: "Ibn Majah 4112",
+        chapter: "PUASA RAMADAN MENGHAPUSKAN DOSA",
+        narrator: "Abu Hurairah RA",
+        source:
+          "Riwayat Muslim, Kitab at-Toharah, Bab ashSholawat al-Khamsi wa al-Jumati 'Ila alJumaati' wa Ramadhana Ila Ramadhana Mukaffiratun Lima Bainahunna Ma Ijtinabati al-Kabair, no. 233",
+        book: "Kitab at-Toharah",
+        collection: "Riwayat Muslim",
+        number: "223",
+        translation:
+          'Daripada Abu Hurairah RA, bahawa Rasulullah ﷺ bersabda: "Solat lima waktu, hari Jumaat ke Jumaat (berikutnya) dan Ramadan ke Ramadan (berikutnya) akan menghapuskan (dosa-dosa) di antara tempoh tersebut sekiranya (seseorang itu) menjauhi dosadosa besar."',
+        lessons: [
+          "Seseorang yang melakukan amalan wajib akan diganjari pahala dan keampunan oleh Allah SWT.",
+          "Setiap amalan yang dilaksanakan dengan penuh keikhlasan akan melahirkan kemanisan dan ketenangan dalam diri dalam beramal.",
+          "Keampunan yang dimaksudkan adalah untuk dosa-dosa kecil sahaja manakala dosa-dosa besar tidak akan terhapus melainkan dengan hanya bertaubat kepada Allah SWT (dengan sebenar-benar taubat).",
+        ],
       },
       {
         id: 7,
-        collection: "Sahih Bukhari",
-        book: "Book of Faith",
-        number: "42",
-        narrator: "Anas",
-        text: 'The Prophet (ﷺ) said, "None of you will have faith till he wishes for his (Muslim) brother what he likes for himself."',
-        arabicText:
-          "قَالَ النَّبِيُّ صلى الله عليه وسلم: لَا يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ",
-        grade: "sahih",
-        chapter: "From the signs of faith",
-        topics: ["Faith", "Brotherhood", "Love"],
-        reference: "Bukhari 42",
+        chapter: "GANJARAN ORANG YANG BERPUASA DARI ALLAH SWT",
+        narrator: "Abu Hurairah RA",
+        source:
+          "Muttafaqun 'Alayhi, riwayat al-Bukhari, Kitab ash-Shaum, Bab Hal Yaqulu Inni Shaimun Iza Sutima, no. 1904, Muslim, Kitab ash-Shiyam, Bab Fadhlu ash-Shiyam, no. 1151",
+        book: "Kitab ash-Shaum",
+        collection: "Muttafaqun 'Alayhi",
+        number: "1151",
+        translation:
+          "Daripada Abu Hurairah RA, beliau berkata, Rasulullah ﷺ bersabda: 'Allah SWT berfirman (hadith qudsi): Setiap amalan anak Adam adalah untuk dirinya melainkan puasa. Sesungguhnya puasa itu milik-Ku (Allah) dan Akulah yang akan membalasnya.'",
+        lessons: [
+          "Makna 'Sesungguhnya puasa itu milik-Ku (Allah) dan Akulah yang akan membalasnya' adalah puasa merupakan amalan batin yang hakikatnya tidak diketahui melainkan Allah SWT yang Maha Mengetahui dan orang yang melakukannya sahaja.",
+          "Di hari kiamat, Allah 'Azza Wajalla akan menghisab setiap amalan hamba-Nya. Setiap kezaliman akan disempurnakan pembalasannya dengan semua amalan pelaku kezaliman itu akan dijadikan kafarah kepada dosa kezalimannya sehinggalah tidak tinggal sedikit pun daripada amalannya kecuali puasa. Lalu Allah SWT menghapuskan dosa yang berbaki daripada kezaliman tersebut dan dimasukkan ke dalam syurga dengan sebab amalan puasa yang telah dilakukan.",
+          "Sesungguhnya puasa adalah milik Allah 'Azza Wajalla. Tidak ada jalan bagi seseorangpun untuk merampas pahala puasa, bahkan ia akan kekal bersama pemiliknya.",
+        ],
       },
     ];
 
@@ -213,10 +234,6 @@ const MainPage: React.FC<{ initialHadithId?: string }> = ({
         );
       }
 
-      if (selectedGrade !== "all") {
-        results = results.filter((hadith) => hadith.grade === selectedGrade);
-      }
-
       return results;
     };
 
@@ -226,17 +243,12 @@ const MainPage: React.FC<{ initialHadithId?: string }> = ({
       const term = searchTerm.toLowerCase();
       return results.filter(
         (hadith) =>
-          hadith.text.toLowerCase().includes(term) ||
+          hadith.translation.toLowerCase().includes(term) ||
           hadith.arabicText?.toLowerCase().includes(term) ||
           hadith.narrator.toLowerCase().includes(term) ||
           hadith.book.toLowerCase().includes(term) ||
           hadith.number.includes(term) ||
-          hadith.chapter.toLowerCase().includes(term) ||
-          (hadith.topics &&
-            hadith.topics.some((topic) =>
-              topic.toLowerCase().includes(term)
-            )) ||
-          (hadith.reference && hadith.reference.toLowerCase().includes(term))
+          hadith.chapter.toLowerCase().includes(term)
       );
     };
 
@@ -395,11 +407,11 @@ const MainPage: React.FC<{ initialHadithId?: string }> = ({
               </button>
               <button
                 className={`px-4 py-2 ${
-                  displayLanguage === "english" ? "bg-gray-900 text-white" : ""
+                  displayLanguage === "malay" ? "bg-gray-900 text-white" : ""
                 }`}
-                onClick={() => setDisplayLanguage("english")}
+                onClick={() => setDisplayLanguage("malay")}
               >
-                English
+                Malay
               </button>
             </div>
           </div>
@@ -460,8 +472,8 @@ const MainPage: React.FC<{ initialHadithId?: string }> = ({
             bookmarks={bookmarks}
             displayLanguage={displayLanguage}
             isCopied={copied}
-            copyHadithText={(text, arabicText) => {
-              copyHadithText(setCopied, { text, arabicText, displayLanguage });
+            copyHadithText={(text) => {
+              copyHadithText(setCopied, { text, displayLanguage });
               toast.open({
                 content: "Hadith copied successfully!",
                 variant: "success",

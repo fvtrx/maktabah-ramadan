@@ -1,6 +1,4 @@
-import { HADITH_GRADES } from "@src/constants";
 import { useHadithStore } from "@src/store";
-import { getHadithOptions } from "@src/utils/helpers/getHadithOptions";
 import Dropdown from "./Dropdown";
 import Search from "./Search";
 
@@ -29,13 +27,9 @@ const FilterHadithSidebar = ({
     selectedNarrator,
     setSelectedNarrator,
     narrators,
-    selectedGrade,
-    setSelectedGrade,
     resetFilters,
     filteredHadiths,
   } = useHadithStore();
-
-  const hadithOptions = getHadithOptions(HADITH_GRADES);
 
   if (!isSidebarOpen) return null;
 
@@ -97,14 +91,6 @@ const FilterHadithSidebar = ({
           selectedOptions={narrators}
           selectedItem={selectedNarrator}
           setSelectedItem={setSelectedNarrator}
-        />
-
-        {/* Grade filter */}
-        <Dropdown
-          type="grades"
-          selectedOptions={hadithOptions}
-          selectedItem={selectedGrade}
-          setSelectedItem={setSelectedGrade}
         />
       </div>
 

@@ -1,6 +1,5 @@
 import { Bookmark, DisplayLanguage, Hadith } from "@src/store";
 import { FC } from "react";
-import GradeBadge from "./GradeBadge";
 
 type Props = {
   hadith: Hadith;
@@ -42,29 +41,29 @@ const HadithCard: FC<Props> = ({
             </p>
           </div>
         </div>
-        <GradeBadge grade={hadith.grade} />
+        {/* <GradeBadge grade={hadith.grade} /> */}
       </div>
 
       {/* Show text based on language preference */}
       <div className="space-y-3">
-        {(displayLanguage === "english" || displayLanguage === "both") && (
+        {(displayLanguage === "malay" || displayLanguage === "both") && (
           <p className="text-gray-700 leading-relaxed">
-            {hadith.text.length > 200
-              ? hadith.text.substring(0, 200) + "..."
-              : hadith.text}
+            {hadith.translation.length > 200
+              ? hadith.translation.substring(0, 200) + "..."
+              : hadith.translation}
           </p>
         )}
 
-        {(displayLanguage === "arabic" || displayLanguage === "both") && (
+        {/* {(displayLanguage === "arabic" || displayLanguage === "both") && (
           <p dir="rtl" className="text-gray-700 leading-relaxed" lang="ar">
             {hadith.arabicText?.length > 200
               ? hadith.arabicText.substring(0, 200) + "..."
               : hadith.arabicText}
           </p>
-        )}
+        )} */}
       </div>
 
-      <div className="flex flex-wrap mt-4 gap-1">
+      {/* <div className="flex flex-wrap mt-4 gap-1">
         {hadith.topics &&
           hadith.topics.map((topic) => (
             <span
@@ -74,7 +73,7 @@ const HadithCard: FC<Props> = ({
               {topic}
             </span>
           ))}
-      </div>
+      </div> */}
     </div>
   );
 };
