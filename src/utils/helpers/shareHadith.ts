@@ -14,13 +14,6 @@ declare global {
   }
 }
 
-/**
- * Creates a custom Hadith image for download with the Maktabah Ramadan header
- * while preserving the original title and removing only the star/X icons
- */
-/**
- * Enhanced download function with improved UI and Maktabah Ramadan logo
- */
 export const directDownload = async (
   modalRef: React.RefObject<HTMLDivElement | null>
 ): Promise<void> => {
@@ -40,13 +33,44 @@ export const directDownload = async (
       ".text-gray-400.hover\\:text-gray-600"
     );
 
+    // Find keywords section to hide
+    const keywordsSection = modalRef.current.querySelector(
+      ".flex.flex-wrap.pt-6.gap-2.items-center"
+    );
+
     // Store original styles
     let originalButtonDisplay = "flex";
+    let originalKeywordsDisplay = "flex";
+    let originalOverflowY = "auto";
+    let originalMaxHeight = "70vh";
+
+    // Find the scrollable content div and remove its height constraints
+    const scrollableDiv = modalRef.current.querySelector(
+      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\]"
+    );
+
+    if (scrollableDiv) {
+      originalOverflowY =
+        (scrollableDiv as HTMLElement).style.overflowY || "auto";
+      originalMaxHeight =
+        (scrollableDiv as HTMLElement).style.maxHeight || "70vh";
+
+      // Remove scroll constraints for the screenshot
+      (scrollableDiv as HTMLElement).style.overflowY = "visible";
+      (scrollableDiv as HTMLElement).style.maxHeight = "none";
+    }
 
     if (buttonSection) {
       originalButtonDisplay =
         (buttonSection as HTMLElement).style.display || "flex";
       (buttonSection as HTMLElement).style.display = "none";
+    }
+
+    // Hide keywords section
+    if (keywordsSection) {
+      originalKeywordsDisplay =
+        (keywordsSection as HTMLElement).style.display || "flex";
+      (keywordsSection as HTMLElement).style.display = "none";
     }
 
     // Hide buttons
@@ -136,7 +160,24 @@ export const directDownload = async (
     // Wait for styles to apply
     await new Promise((resolve) => setTimeout(resolve, 200));
 
-    // Capture the modal with improved styling
+    // Add a loading indicator
+    const loadingIndicator = document.createElement("div");
+    loadingIndicator.style.position = "fixed";
+    loadingIndicator.style.top = "50%";
+    loadingIndicator.style.left = "50%";
+    loadingIndicator.style.transform = "translate(-50%, -50%)";
+    loadingIndicator.style.padding = "15px 25px";
+    loadingIndicator.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+    loadingIndicator.style.color = "white";
+    loadingIndicator.style.borderRadius = "8px";
+    loadingIndicator.style.zIndex = "99999";
+    loadingIndicator.style.fontSize = "14px";
+    loadingIndicator.style.fontWeight = "500";
+    loadingIndicator.innerHTML = "Generating image...";
+    document.body.appendChild(loadingIndicator);
+
+    // Capture the modal with improved styling - with timeout to ensure DOM is ready
+    await new Promise((resolve) => setTimeout(resolve, 100));
     const canvas = await window.html2canvas(modalRef.current, {
       allowTaint: true,
       useCORS: true,
@@ -144,6 +185,23 @@ export const directDownload = async (
       backgroundColor: "#ffffff",
       logging: false,
       onclone: (clonedDoc) => {
+        // Find and hide keywords section in clone too
+        const clonedKeywordsSection = clonedDoc.querySelector(
+          ".flex.flex-wrap.pt-6.gap-2.items-center"
+        );
+        if (clonedKeywordsSection) {
+          (clonedKeywordsSection as HTMLElement).style.display = "none";
+        }
+
+        // Remove scroll constraints in cloned document as well
+        const clonedScrollableDiv = clonedDoc.querySelector(
+          ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\]"
+        );
+        if (clonedScrollableDiv) {
+          (clonedScrollableDiv as HTMLElement).style.overflowY = "visible";
+          (clonedScrollableDiv as HTMLElement).style.maxHeight = "none";
+        }
+
         // Handle oklch colors
         const allElements = clonedDoc.querySelectorAll("*");
         allElements.forEach((element) => {
@@ -168,7 +226,7 @@ export const directDownload = async (
           }
         });
 
-        // Enhance keyword chips in the cloned document
+        // Enhance keyword chips in the cloned document if they're still visible
         const keywordChips = clonedDoc.querySelectorAll(
           ".text-xs.px-2.py-1.rounded-full.bg-gray-50.text-gray-500"
         );
@@ -219,6 +277,17 @@ export const directDownload = async (
       (buttonSection as HTMLElement).style.display = originalButtonDisplay;
     }
 
+    // Restore keywords section
+    if (keywordsSection) {
+      (keywordsSection as HTMLElement).style.display = originalKeywordsDisplay;
+    }
+
+    // Restore scroll settings
+    if (scrollableDiv) {
+      (scrollableDiv as HTMLElement).style.overflowY = originalOverflowY;
+      (scrollableDiv as HTMLElement).style.maxHeight = originalMaxHeight;
+    }
+
     // Restore buttons
     if (bookmarkButton) {
       (bookmarkButton as HTMLElement).style.display = "block";
@@ -226,6 +295,11 @@ export const directDownload = async (
 
     if (closeButton) {
       (closeButton as HTMLElement).style.display = "block";
+    }
+
+    // Remove the loading indicator
+    if (loadingIndicator.parentNode) {
+      document.body.removeChild(loadingIndicator);
     }
 
     // Get data URL for the image
@@ -243,8 +317,8 @@ export const directDownload = async (
     modal.style.display = "flex";
     modal.style.justifyContent = "center";
     modal.style.alignItems = "center";
-    modal.style.zIndex = "9999";
-    modal.style.transition = "opacity 0.2s ease";
+    modal.style.zIndex = "99999"; // Increase z-index to ensure it's on top
+    modal.style.transition = "opacity 0.3s ease";
     modal.style.opacity = "0";
 
     // Create container with beautiful styling
@@ -260,6 +334,7 @@ export const directDownload = async (
     container.style.flexDirection = "column";
     container.style.transform = "scale(0.95)";
     container.style.transition = "transform 0.3s ease";
+    container.style.willChange = "transform"; // Optimize for animations
 
     // Create modal header with Maktabah Ramadan branding
     const modalHeader = document.createElement("div");
@@ -314,28 +389,51 @@ export const directDownload = async (
       container.style.transform = "scale(0.95)";
       setTimeout(() => {
         document.body.removeChild(modal);
-      }, 200);
+        // Clean up the style tag we added
+        if (styleTag.parentNode) {
+          styleTag.parentNode.removeChild(styleTag);
+        }
+      }, 300);
     };
 
     // Add close button to header
     modalHeader.appendChild(closeButtonModal);
 
-    // Create image content area
+    // Create image content area with improved styling
     const imageContainer = document.createElement("div");
     imageContainer.style.padding = "20px";
     imageContainer.style.display = "flex";
     imageContainer.style.flexDirection = "column";
     imageContainer.style.alignItems = "center";
     imageContainer.style.overflowY = "auto";
+    imageContainer.style.overflowX = "hidden"; // Prevent horizontal scrolling
+    imageContainer.style.setProperty("-ms-overflow-style", "none");
+    imageContainer.style.scrollbarWidth = "none"; // Hide scrollbars in Firefox
 
-    // Add image with border and shadow
-    const img = document.createElement("img");
-    img.src = dataUrl;
+    // Add custom scrollbar hiding for WebKit browsers
+    const styleTag = document.createElement("style");
+    styleTag.textContent = `
+      .modal-image-container::-webkit-scrollbar {
+        display: none;
+      }
+    `;
+    document.head.appendChild(styleTag);
+    imageContainer.classList.add("modal-image-container");
+
+    // Add image with border and shadow - preload handling to prevent flickering
+    const img = new Image();
+    img.onload = function () {
+      // Image is loaded, ensure smooth display
+      img.style.opacity = "1";
+    };
+    img.style.opacity = "0";
+    img.style.transition = "opacity 0.3s ease";
     img.style.maxWidth = "100%";
     img.style.borderRadius = "8px";
     img.style.border = "1px solid #eaeaea";
     img.style.boxShadow =
       "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+    img.src = dataUrl; // Set src after setting up the onload handler
 
     // Create action buttons container
     const actionContainer = document.createElement("div");
@@ -440,29 +538,6 @@ export const directDownload = async (
       }
     };
 
-    // Create footer element
-    //     const modalFooterElement = document.createElement("div");
-    //     modalFooterElement.style.borderTop = "1px solid #eaeaea";
-    //     modalFooterElement.style.padding = "16px";
-    //     modalFooterElement.style.marginTop = "20px";
-    //     modalFooterElement.style.textAlign = "center";
-    //     modalFooterElement.style.backgroundColor = "white";
-    //     modalFooterElement.style.borderBottomLeftRadius = "12px";
-    //     modalFooterElement.style.borderBottomRightRadius = "12px";
-
-    //     // Add the Maktabah Ramadan logo to the footer
-    //     modalFooterElement.innerHTML = `
-    //   <div style="display: inline-flex; align-items: center; justify-content: center;">
-    //     <span style="font-size: 20px; margin-right: 8px;">☪</span>
-    //     <span style="font-size: 16px; font-weight: 600; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-    //       <span style="color: #000000;">Maktabah</span>
-    //       <span style="background: linear-gradient(to right, #7c3aed, #c4b5fd); -webkit-background-clip: text; background-clip: text; color: transparent;">
-    //         Ramadan
-    //       </span>
-    //     </span>
-    //   </div>
-    // `;
-
     // Add buttons to action container
     actionContainer.appendChild(downloadBtn);
 
@@ -481,15 +556,22 @@ export const directDownload = async (
     imageContainer.appendChild(actionContainer);
     container.appendChild(modalHeader);
     container.appendChild(imageContainer);
-    // container.appendChild(modalFooterElement);
     modal.appendChild(container);
     document.body.appendChild(modal);
 
-    // Animate the modal entrance
-    setTimeout(() => {
-      modal.style.opacity = "1";
-      container.style.transform = "scale(1)";
-    }, 10);
+    // Add the modal to the DOM first but keep it invisible during initial layout
+    document.body.appendChild(modal);
+
+    // Force a reflow before starting animations to prevent layout glitches
+    void modal.offsetWidth;
+
+    // Animate the modal entrance with a slight delay
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        modal.style.opacity = "1";
+        container.style.transform = "scale(1)";
+      }, 50);
+    });
   } catch (error) {
     console.error("Error capturing and downloading image:", error);
     alert("There was an error generating the image. Please try again.");
