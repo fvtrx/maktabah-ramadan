@@ -1,5 +1,5 @@
 import { Bookmark, DisplayLanguage, Hadith } from "@src/store";
-import { captureAndShareModal } from "@src/utils/helpers/shareHadith"; // Import the screenshot function
+import { directDownload } from "@src/utils/helpers/shareHadith"; // Import the screenshot function
 import startCase from "lodash/startCase";
 import React, { FC, useEffect, useRef, useState } from "react";
 
@@ -44,16 +44,6 @@ const HadithDetailsModal: FC<Props> = ({
     setIsClosing(true);
     setIsOpen(false);
     setTimeout(closeHadithDetails, 300);
-  };
-
-  const handleShare = () => {
-    setIsSharing(true);
-
-    // Create hadith info text for sharing
-    const hadithInfo = `${selectedHadith.collection}: ${selectedHadith.book} #${selectedHadith.number} - ${selectedHadith.narrator}`;
-
-    captureAndShareModal(modalContentRef, hadithInfo);
-    setTimeout(() => setIsSharing(false), 1500); // Reset sharing state after 1.5 seconds
   };
 
   if (!selectedHadith) return null;
@@ -173,27 +163,30 @@ const HadithDetailsModal: FC<Props> = ({
             className="mt-6"
           >
             <h3 className="text-sm text-gray-500 mb-2">Pengajaran Hadis</h3>
-            {selectedHadith.lessons.map((item, index) => {
-              return (
-                <li
-                  key={index}
-                  className="text-justify list-decimal mb-2"
-                >{`${item}`}</li>
-              );
-            })}
+            <ol className="list-decimal pl-5 space-y-2">
+              {selectedHadith.lessons.map((item, index) => {
+                return (
+                  <li key={index} className="text-justify">
+                    {item}
+                  </li>
+                );
+              })}
+            </ol>
           </div>
 
-          <div className="flex flex-wrap pt-6 gap-2 place-items-center">
-            <p className="text-sm  text-gray-500">Kata kunci:</p>
-            {selectedHadith.topics &&
-              selectedHadith.topics.map((topic) => (
-                <span
-                  key={topic}
-                  className="text-xs px-2 py-1 rounded-full bg-gray-50 text-gray-500"
-                >
-                  {startCase(topic)}
-                </span>
-              ))}
+          <div className="flex flex-wrap pt-6 gap-2 items-center">
+            <p className="text-sm text-gray-500">Kata kunci:</p>
+            <div className="flex flex-wrap gap-2">
+              {selectedHadith.topics &&
+                selectedHadith.topics.map((topic) => (
+                  <span
+                    key={topic}
+                    className="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 font-medium" /* Improved chip styling */
+                  >
+                    {startCase(topic)}
+                  </span>
+                ))}
+            </div>
           </div>
         </div>
 
@@ -226,60 +219,19 @@ const HadithDetailsModal: FC<Props> = ({
 
           <div className="flex gap-2">
             <button
-              disabled={isSharing}
               className="px-4 py-2 rounded-full text-white text-sm"
               style={{
-                backgroundColor: "#25D366",
+                backgroundColor: "#6c757d",
                 transition: "all 150ms ease",
-                opacity: isSharing ? 0.7 : 1,
-              }}
-              onMouseOver={(e) => {
-                if (!isSharing) {
-                  e.currentTarget.style.backgroundColor = "#128C7E";
-                }
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#25D366";
               }}
               onClick={() => {
                 setIsSharing(true);
-                const hadithInfo = `${selectedHadith.collection}: ${selectedHadith.book} #${selectedHadith.number} - ${selectedHadith.narrator}`;
-                captureAndShareModal(modalContentRef, hadithInfo, "whatsapp");
-                setTimeout(() => setIsSharing(false), 1500);
+                directDownload(modalContentRef).finally(() => {
+                  setTimeout(() => setIsSharing(false), 1000);
+                });
               }}
             >
-              WhatsApp
-            </button>
-
-            <button
-              disabled={isSharing}
-              className="px-4 py-2 rounded-full text-white text-sm"
-              style={{
-                backgroundColor: "#1DA1F2",
-                transition: "all 150ms ease",
-                opacity: isSharing ? 0.7 : 1,
-              }}
-              onClick={() => {
-                setIsSharing(true);
-                const hadithInfo = `${selectedHadith.collection}: ${selectedHadith.book} #${selectedHadith.number} - ${selectedHadith.narrator}`;
-                captureAndShareModal(modalContentRef, hadithInfo, "twitter");
-                setTimeout(() => setIsSharing(false), 1500);
-              }}
-            >
-              Twitter
-            </button>
-
-            <button
-              disabled={isSharing}
-              className="px-4 py-2 rounded-full text-gray-700 text-sm"
-              style={{
-                backgroundColor: "#f8f9fa",
-                transition: "all 150ms ease",
-                opacity: isSharing ? 0.7 : 1,
-              }}
-              onClick={handleShare}
-            >
-              {isSharing ? "Sharing..." : "More..."}
+              {isSharing ? "Processing..." : "Download"}
             </button>
           </div>
         </div>
