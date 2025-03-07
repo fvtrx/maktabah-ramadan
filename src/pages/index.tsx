@@ -45,7 +45,7 @@ export default function Home() {
           </svg>
         </div>
 
-        <main className="flex-1 flex flex-col items-center justify-center w-full space-y-[2rem] px-4 sm:px-6">
+        <main className="flex-1 flex flex-col items-center justify-center w-full space-y-[2rem] px-4 sm:px-6 mt-8">
           <div className="w-full max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-yellow-300 drop-shadow-lg">
               <span className="text-6xl mr-2">☪</span> Maktabah Ramadan
@@ -53,6 +53,31 @@ export default function Home() {
             <p className="text-xl md:text-2xl mb-12 max-w-2xl mx-auto">
               Destinasi himpunan hadis-hadis Ramadan untuk rujukan anda.
             </p>
+
+            <div className="relative max-w-3xl mx-auto p-8 mb-12 bg-violet-800 rounded-lg shadow-xl border-l-4 border-amber-400">
+              <div className="absolute -top-6 -left-6 text-6xl text-amber-400 opacity-50">
+                "
+              </div>
+              <div className="absolute -bottom-16 -right-6 text-6xl text-amber-400 opacity-50">
+                "
+              </div>
+
+              <p className="text-gray-100 text-lg leading-relaxed italic z-10 relative">
+                Daripada Abu Hurairah RA, daripada Nabi ﷺ bersabda: "Sesiapa
+                yang berpuasa Ramadan dengan penuh keimanan dan{" "}
+                <span className="text-amber-300 font-semibold italic">
+                  ihtisab
+                </span>{" "}
+                (mengharapkan keredhaan Allah) akan diampunkan dosanya yang
+                terdahulu."
+              </p>
+
+              <div className="mt-6 pt-4 border-t border-violet-600 text-gray-300 text-sm italic">
+                Riwayat al-Bukhari, Kitab al-Iman, Bab Shawmu Ramadhan Ihtisaban
+                Minaal-Iman, no.38
+              </div>
+            </div>
+
             <button
               onClick={handleClick}
               disabled={isLoading}
