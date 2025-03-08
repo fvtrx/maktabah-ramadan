@@ -11,12 +11,24 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isAudioSupported, setIsAudioSupported] = useState(true);
 
   // Handle user interaction
   const handleInteraction = () => {
     if (!hasInteracted && audioRef.current) {
       const audioRefCurrent = audioRef.current;
       setHasInteracted(true);
+
+      // Verify that the src is valid before attempting to play
+      if (!src || src.trim() === "") {
+        console.error("Audio source is empty or invalid");
+        setIsAudioSupported(false);
+        // Still call the callback so the page content is shown
+        if (onAudioEnabled) {
+          onAudioEnabled();
+        }
+        return;
+      }
 
       audioRefCurrent
         .play()
@@ -31,6 +43,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
         .catch((error) => {
           console.error("Audio playback failed:", error);
           setIsPlaying(false);
+          setIsAudioSupported(false);
           // Still call the callback even if audio fails, so the page content is shown
           if (onAudioEnabled) {
             onAudioEnabled();
@@ -39,24 +52,46 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
     }
   };
 
+  // Verify audio source and format support when src changes
+  useEffect(() => {
+    if (audioRef.current) {
+      // Reset audio support status when src changes
+      setIsAudioSupported(true);
+
+      // Check if the src is valid
+      if (!src || src.trim() === "") {
+        console.error("Audio source is empty or invalid");
+        setIsAudioSupported(false);
+      }
+    }
+  }, [src]);
+
   // Setup audio element when component mounts
   useEffect(() => {
     if (audioRef.current) {
       const audioRefCurrent = audioRef.current;
+
       // Set up audio event listeners
       const handleEnded = () => setIsPlaying(false);
       const handlePlay = () => setIsPlaying(true);
       const handlePause = () => setIsPlaying(false);
+      const handleError = (e: Event) => {
+        console.error("Audio error:", e);
+        setIsAudioSupported(false);
+        setIsPlaying(false);
+      };
 
       audioRefCurrent.addEventListener("ended", handleEnded);
       audioRefCurrent.addEventListener("play", handlePlay);
       audioRefCurrent.addEventListener("pause", handlePause);
+      audioRefCurrent.addEventListener("error", handleError);
 
       return () => {
         if (audioRefCurrent) {
           audioRefCurrent.removeEventListener("ended", handleEnded);
           audioRefCurrent.removeEventListener("play", handlePlay);
           audioRefCurrent.removeEventListener("pause", handlePause);
+          audioRefCurrent.removeEventListener("error", handleError);
         }
       };
     }
@@ -64,8 +99,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
 
   return (
     <div className="audio-player-container">
-      {/* Hidden audio element */}
-      <audio ref={audioRef} src={src} loop />
+      {/* Hidden audio element with multiple source options for better compatibility */}
+      <audio ref={audioRef} preload="metadata">
+        {src && (
+          <>
+            {/* Try to determine the type based on file extension */}
+            {src.endsWith(".mp3") && <source src={src} type="audio/mpeg" />}
+            {src.endsWith(".wav") && <source src={src} type="audio/wav" />}
+            {src.endsWith(".ogg") && <source src={src} type="audio/ogg" />}
+            {src.endsWith(".m4a") && <source src={src} type="audio/mp4" />}
+            {/* Fallback source with no type specified */}
+            <source src={src} />
+          </>
+        )}
+        Your browser does not support the audio element.
+      </audio>
 
       {/* Interaction overlay - shown until user interacts */}
       {!hasInteracted && (
@@ -118,8 +166,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
         </div>
       )}
 
-      {/* Optional audio controls (you can show/hide based on your needs) */}
-      {hasInteracted && (
+      {/* Optional audio controls (only show if audio is supported) */}
+      {hasInteracted && isAudioSupported && (
         <div
           style={{
             position: "fixed",
@@ -137,7 +185,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
                 if (isPlaying) {
                   audioRef.current.pause();
                 } else {
-                  audioRef.current.play();
+                  audioRef.current.play().catch((err) => {
+                    console.error("Error on manual play:", err);
+                    setIsAudioSupported(false);
+                  });
                 }
               }
             }}
@@ -162,6 +213,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
               </>
             )}
           </button>
+        </div>
+      )}
+
+      {/* Error message when audio is not supported */}
+      {hasInteracted && !isAudioSupported && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            zIndex: 100,
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            padding: "10px",
+            borderRadius: "5px",
+            color: "white",
+          }}
+        >
+          Audio playback not supported. Please try a different browser or audio
+          format.
         </div>
       )}
     </div>
