@@ -397,18 +397,19 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     >
       <div className="flex flex-col h-screen bg-white text-gray-900">
         {/* Header */}
-        <header className="border-b border-gray-100 py-4 px-6 bg-white sticky top-0 z-10">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
+        <header className="border-b border-gray-100 py-2 sm:py-4 px-3 sm:px-6 bg-white sticky top-0 z-10">
+          <div className="flex flex-col sm:flex-row lg:flex-row justify-between items-center">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={toggleSidebar}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-colors"
                 aria-label="Toggle sidebar"
               >
                 ☰
               </button>
-              <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-black to-violet-300">
-                <span className="text-2xl mr-2">☪</span> Maktabah Ramadan
+              <h1 className="text-lg sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-black to-violet-300 truncate">
+                <span className="text-lg sm:text-2xl mr-1 sm:mr-2">☪</span>
+                <span className="inline">Maktabah</span> Ramadan
               </h1>
             </div>
 
@@ -429,13 +430,13 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
             }}
           />
 
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-3 sm:p-6 overflow-y-auto">
             {isLoading ? (
               <div className="flex justify-center items-center h-full">
                 <p>Loading...</p>
               </div>
             ) : filteredHadiths.length > 0 ? (
-              <div className="space-y-6">
+              <div className="space-y-3 sm:space-y-6">
                 {filteredHadiths.map((hadith) => (
                   <HadithCard
                     key={hadith.id}
@@ -448,12 +449,12 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <p className="text-gray-400 mb-4">
+              <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
                   No hadith found matching your search criteria.
                 </p>
                 <button
-                  className="text-sm text-gray-500 border p-2 rounded-sm relative overflow-hidden group hover:cursor-pointer"
+                  className="text-xs sm:text-sm text-gray-500 border p-1.5 sm:p-2 rounded-sm relative overflow-hidden group hover:cursor-pointer"
                   onClick={resetFilters}
                 >
                   <span className="relative z-10 transition-colors duration-150 group-hover:text-white">
@@ -486,8 +487,8 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
         )}
 
         {/* Footer */}
-        <footer className="py-4 px-6 border-t border-gray-100 text-center text-gray-400 text-sm">
-          <span className="font-semibold text-black/60 ">Maktabah Ramadan</span>{" "}
+        <footer className="py-2 sm:py-4 px-3 sm:px-6 border-t border-gray-100 text-center text-gray-400 text-xs sm:text-sm">
+          <span className="font-semibold text-black/60">Maktabah Ramadan</span>{" "}
           • Develop by{" "}
           <span className="text-black/60 font-semibold">fvtrx</span> &copy;.
         </footer>

@@ -22,20 +22,31 @@ export const directDownload = async (
   try {
     // Find elements to temporarily hide or modify
     const buttonSection = modalRef.current.querySelector(
-      '[class*="px-6 pt-4 border-t"]'
+      '[class*="px-6 pt-4 border-t"], [class*="px-3 sm:px-6 pt-3 sm:pt-4 border-t"]'
     );
 
     const bookmarkButton = modalRef.current.querySelector(
-      ".text-lg.text-gray-400.hover\\:text-yellow-500"
+      ".text-lg.text-gray-400.hover\\:text-yellow-500, .text-lg.sm\\:text-lg.text-gray-400.hover\\:text-yellow-500"
     );
 
-    const closeButton = modalRef.current.querySelector(
-      ".text-gray-400.hover\\:text-gray-600"
-    );
+    // const closeButton = modalRef.current.querySelector(
+    //   ".text-gray-400.hover\\:text-gray-600"
+    // );
+
+    // Add close button
+    const closeButton = document.createElement("button");
+    closeButton.className =
+      "p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors";
+    closeButton.innerHTML = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    `;
 
     // Find keywords section to hide
     const keywordsSection = modalRef.current.querySelector(
-      ".flex.flex-wrap.pt-6.gap-2.items-center"
+      ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center"
     );
 
     // Store original styles
@@ -46,7 +57,7 @@ export const directDownload = async (
 
     // Find the scrollable content div and remove its height constraints
     const scrollableDiv = modalRef.current.querySelector(
-      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\]"
+      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\], .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto.max-h-\\[60vh\\].sm\\:max-h-\\[70vh\\]"
     );
 
     if (scrollableDiv) {
@@ -161,12 +172,12 @@ export const directDownload = async (
 
     // Extract the main content area from the clone
     const mainContent = contentClone.querySelector(
-      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto"
+      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto, .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto"
     );
     if (mainContent) {
       // Extract the title from the header section
       const headerArea = contentClone.querySelector(
-        ".flex.justify-between.items-center.p-6"
+        ".flex.justify-between.items-center.p-6, .flex.justify-between.items-center.p-3.sm\\:p-6"
       );
       const titleElement = headerArea?.querySelector("h2") || null;
 
@@ -182,7 +193,7 @@ export const directDownload = async (
 
         // Add the source if available
         const sourceElement = headerArea?.querySelector(
-          ".text-sm.text-gray-400"
+          ".text-sm.text-gray-400, .text-xs.sm\\:text-sm.text-gray-400"
         );
         if (sourceElement) {
           const sourceText = document.createElement("p");
@@ -213,7 +224,7 @@ export const directDownload = async (
 
       // Hide keywords section in the clone
       const keywordsToHide = mainContent.querySelector(
-        ".flex.flex-wrap.pt-6.gap-2.items-center"
+        ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center"
       );
       if (keywordsToHide && keywordsToHide.parentNode) {
         keywordsToHide.parentNode.removeChild(keywordsToHide);
@@ -376,181 +387,80 @@ export const directDownload = async (
     // Get data URL for the image
     const dataUrl = canvas.toDataURL("image/png", 1.0);
 
-    // Create a beautiful modal to show the generated image
-    const modal = document.createElement("div");
-    modal.style.position = "fixed";
-    modal.style.top = "0";
-    modal.style.left = "0";
-    modal.style.width = "100%";
-    modal.style.height = "100%";
-    modal.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
-    modal.style.backdropFilter = "blur(5px)";
-    modal.style.display = "flex";
-    modal.style.justifyContent = "center";
-    modal.style.alignItems = "center";
-    modal.style.zIndex = "99999"; // Increase z-index to ensure it's on top
-    modal.style.transition = "opacity 0.3s ease";
-    modal.style.opacity = "0";
+    // Create a modal container that will adapt to screen size
+    const modalContainer = document.createElement("div");
+    modalContainer.className =
+      "fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-50";
+    modalContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
+    modalContainer.style.backdropFilter = "blur(5px)";
+    modalContainer.style.opacity = "0";
+    modalContainer.style.transition = "opacity 0.3s ease";
 
-    // Create container with beautiful styling
-    const container = document.createElement("div");
-    container.style.backgroundColor = "white";
-    container.style.borderRadius = "12px";
-    container.style.boxShadow = "0 25px 50px -12px rgba(0, 0, 0, 0.25)";
-    container.style.overflow = "hidden";
-    container.style.width = "90%";
-    container.style.maxWidth = "768px";
-    container.style.maxHeight = "90vh";
-    container.style.display = "flex";
-    container.style.flexDirection = "column";
-    container.style.transform = "scale(0.95)";
-    container.style.transition = "transform 0.3s ease";
-    container.style.willChange = "transform"; // Optimize for animations
+    // Create a modal content div that will use Tailwind classes
+    const modalContent = document.createElement("div");
+    modalContent.className =
+      "bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden transform scale-95 transition-all duration-300";
+    modalContent.style.opacity = "0";
+    modalContent.style.transition =
+      "transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)";
 
-    // Create modal header with Maktabah Ramadan branding
+    // Create header with responsive classes
     const modalHeader = document.createElement("div");
-    modalHeader.style.padding = "16px 20px";
-    modalHeader.style.borderBottom = "1px solid #f0f0f0";
-    modalHeader.style.display = "flex";
-    modalHeader.style.alignItems = "center";
-    modalHeader.style.justifyContent = "space-between";
-    modalHeader.innerHTML = `
-  <div style="display: flex; align-items: center;">
-    <h2 style="margin: 0; font-size: 24px; font-weight: 700; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <span style="font-size: 24px; margin-right: 8px; color: #000000;">☪</span>
-      <span style="color: #000000;">Maktabah</span>
-      <span style="color: #8b5cf6;">Ramadan</span>
-    </h2>
-  </div>
-`;
+    modalHeader.className =
+      "flex justify-between items-center p-3 sm:p-6 border-b border-gray-100";
 
-    // Create close button
-    const closeButtonModal = document.createElement("button");
-    closeButtonModal.innerHTML = `
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
+    // Add title
+    const titleDiv = document.createElement("div");
+    titleDiv.className = "flex items-center";
+    titleDiv.innerHTML = `
+      <h2 class="text-lg sm:text-2xl font-bold">
+        <span class="text-lg sm:text-2xl mr-1 sm:mr-2" style="color: #333;">☪</span>
+        <span class="text-black">Maktabah</span>
+        <span class="text-violet-500">Ramadan</span>
+      </h2>
     `;
-    closeButtonModal.style.background = "none";
-    closeButtonModal.style.border = "none";
-    closeButtonModal.style.cursor = "pointer";
-    closeButtonModal.style.color = "#6b7280";
-    closeButtonModal.style.display = "flex";
-    closeButtonModal.style.alignItems = "center";
-    closeButtonModal.style.justifyContent = "center";
-    closeButtonModal.style.padding = "8px";
-    closeButtonModal.style.borderRadius = "6px";
-    closeButtonModal.style.transition = "background-color 0.2s";
 
-    // Add hover effect to close button
-    closeButtonModal.onmouseover = function () {
-      closeButtonModal.style.backgroundColor = "#f3f4f6";
-      closeButtonModal.style.color = "#374151";
-    };
-    closeButtonModal.onmouseout = function () {
-      closeButtonModal.style.backgroundColor = "transparent";
-      closeButtonModal.style.color = "#6b7280";
-    };
+    // Create body with responsive classes
+    const modalBody = document.createElement("div");
+    modalBody.className =
+      "p-3 sm:p-6 overflow-y-auto max-h-[60vh] sm:max-h-[65vh]";
 
-    closeButtonModal.onclick = () => {
-      modal.style.opacity = "0";
-      container.style.transform = "scale(0.95)";
-      setTimeout(() => {
-        document.body.removeChild(modal);
-        // Clean up the style tag we added
-        if (styleTag.parentNode) {
-          styleTag.parentNode.removeChild(styleTag);
-        }
-      }, 300);
-    };
-
-    // Add close button to header
-    modalHeader.appendChild(closeButtonModal);
-
-    // Create image content area with improved styling
-    const imageContainer = document.createElement("div");
-    imageContainer.style.padding = "20px";
-    imageContainer.style.display = "flex";
-    imageContainer.style.flexDirection = "column";
-    imageContainer.style.alignItems = "center";
-    imageContainer.style.overflowY = "auto";
-    imageContainer.style.overflowX = "hidden"; // Prevent horizontal scrolling
-    imageContainer.style.setProperty("-ms-overflow-style", "none");
-    imageContainer.style.scrollbarWidth = "none"; // Hide scrollbars in Firefox
-
-    // Add custom scrollbar hiding for WebKit browsers
-    const styleTag = document.createElement("style");
-    styleTag.textContent = `
-      .modal-image-container::-webkit-scrollbar {
-        display: none;
-      }
-    `;
-    document.head.appendChild(styleTag);
-    imageContainer.classList.add("modal-image-container");
-
-    // Add image with border and shadow - preload handling to prevent flickering
+    // Add image
     const img = new Image();
-    img.onload = function () {
-      // Image is loaded, ensure smooth display
-      img.style.opacity = "1";
-    };
+    img.className = "w-full rounded-lg border border-gray-200 shadow-sm";
     img.style.opacity = "0";
     img.style.transition = "opacity 0.3s ease";
-    img.style.maxWidth = "100%";
-    img.style.borderRadius = "8px";
-    img.style.border = "1px solid #eaeaea";
-    img.style.boxShadow =
-      "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
-    img.src = dataUrl; // Set src after setting up the onload handler
+    img.onload = function () {
+      img.style.opacity = "1";
+    };
+    img.src = dataUrl;
 
-    // Create action buttons container
-    const actionContainer = document.createElement("div");
-    actionContainer.style.display = "flex";
-    actionContainer.style.justifyContent = "center";
-    actionContainer.style.marginTop = "20px";
-    actionContainer.style.gap = "12px";
+    // Create footer with responsive classes
+    const modalFooter = document.createElement("div");
+    modalFooter.className =
+      "p-3 sm:p-6 pt-2 sm:pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center";
 
-    // Create download button
+    // Add download button
     const downloadBtn = document.createElement("a");
+    downloadBtn.className =
+      "flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm sm:text-base transition-colors w-full sm:w-auto";
     downloadBtn.href = dataUrl;
     downloadBtn.download = "hadith-maktabah-ramadan.png";
     downloadBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: -3px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
         <polyline points="7 10 12 15 17 10"></polyline>
         <line x1="12" y1="15" x2="12" y2="3"></line>
       </svg>
       Download Image
     `;
-    downloadBtn.style.display = "inline-flex";
-    downloadBtn.style.alignItems = "center";
-    downloadBtn.style.justifyContent = "center";
-    downloadBtn.style.padding = "10px 20px";
-    downloadBtn.style.backgroundColor = "#6366f1";
-    downloadBtn.style.color = "white";
-    downloadBtn.style.borderRadius = "8px";
-    downloadBtn.style.fontWeight = "600";
-    downloadBtn.style.textDecoration = "none";
-    downloadBtn.style.boxShadow = "0 4px 6px -1px rgba(99, 102, 241, 0.4)";
-    downloadBtn.style.transition = "all 0.2s";
 
-    // Add hover effects to download button
-    downloadBtn.onmouseover = function () {
-      downloadBtn.style.backgroundColor = "#4f46e5";
-      downloadBtn.style.transform = "translateY(-1px)";
-      downloadBtn.style.boxShadow = "0 6px 10px -1px rgba(99, 102, 241, 0.5)";
-    };
-    downloadBtn.onmouseout = function () {
-      downloadBtn.style.backgroundColor = "#6366f1";
-      downloadBtn.style.transform = "translateY(0)";
-      downloadBtn.style.boxShadow = "0 4px 6px -1px rgba(99, 102, 241, 0.4)";
-    };
-
-    // Create share button (optional)
+    // Add share button (only for mobile devices or if Web Share API is supported)
     const shareBtn = document.createElement("button");
+    shareBtn.className =
+      "flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg text-sm sm:text-base transition-colors w-full sm:w-auto";
     shareBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: -3px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="18" cy="5" r="3"></circle>
         <circle cx="6" cy="12" r="3"></circle>
         <circle cx="18" cy="19" r="3"></circle>
@@ -559,26 +469,6 @@ export const directDownload = async (
       </svg>
       Share
     `;
-    shareBtn.style.display = "inline-flex";
-    shareBtn.style.alignItems = "center";
-    shareBtn.style.justifyContent = "center";
-    shareBtn.style.padding = "10px 20px";
-    shareBtn.style.backgroundColor = "#f3f4f6";
-    shareBtn.style.color = "#374151";
-    shareBtn.style.border = "none";
-    shareBtn.style.borderRadius = "8px";
-    shareBtn.style.fontWeight = "600";
-    shareBtn.style.cursor = "pointer";
-    shareBtn.style.boxShadow = "0 1px 2px 0 rgba(0, 0, 0, 0.05)";
-    shareBtn.style.transition = "all 0.2s";
-
-    // Add hover effects to share button
-    shareBtn.onmouseover = function () {
-      shareBtn.style.backgroundColor = "#e5e7eb";
-    };
-    shareBtn.onmouseout = function () {
-      shareBtn.style.backgroundColor = "#f3f4f6";
-    };
 
     // Handle sharing when supported
     shareBtn.onclick = async () => {
@@ -607,35 +497,49 @@ export const directDownload = async (
       }
     };
 
-    // Add buttons to action container
-    actionContainer.appendChild(downloadBtn);
+    // Close button functionality
+    closeButton.onclick = () => {
+      modalContainer.style.opacity = "0";
+      modalContent.style.transform = "scale(0.95)";
+      modalContent.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(modalContainer);
+      }, 300);
+    };
 
-    // Only add share button if Web Share API is likely supported (mainly mobile devices)
+    // Assemble the modal
+    modalHeader.appendChild(titleDiv);
+    modalHeader.appendChild(closeButton);
+
+    modalBody.appendChild(img);
+
+    modalFooter.appendChild(downloadBtn);
+
+    // Only add share button if Web Share API is likely supported or on mobile
     if (
       !!navigator.share ||
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent
       )
     ) {
-      actionContainer.appendChild(shareBtn);
+      modalFooter.appendChild(shareBtn);
     }
 
-    // Assemble the modal
-    imageContainer.appendChild(img);
-    imageContainer.appendChild(actionContainer);
-    container.appendChild(modalHeader);
-    container.appendChild(imageContainer);
-    modal.appendChild(container);
-    document.body.appendChild(modal);
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modalContent.appendChild(modalFooter);
 
-    // Force a reflow before starting animations to prevent layout glitches
-    void modal.offsetWidth;
+    modalContainer.appendChild(modalContent);
+    document.body.appendChild(modalContainer);
 
-    // Animate the modal entrance with a slight delay
+    // Force a reflow and animate in
+    void modalContainer.offsetWidth;
+
     requestAnimationFrame(() => {
       setTimeout(() => {
-        modal.style.opacity = "1";
-        container.style.transform = "scale(1)";
+        modalContainer.style.opacity = "1";
+        modalContent.style.transform = "scale(1)";
+        modalContent.style.opacity = "1";
       }, 50);
     });
   } catch (error) {

@@ -18,14 +18,15 @@ const LanguageSelector: FC<Props> = ({
   ],
 }) => {
   return (
-    <div className="flex gap-1 text-sm bg-gray-50 rounded-full overflow-hidden">
+    <div className="flex gap-0.5 sm:gap-1 text-xs sm:text-sm bg-gray-50 rounded-full overflow-hidden">
       {options.map((option) => (
         <button
           key={option.value}
-          className={`px-4 py-2 cursor-pointer ${
+          className={`px-2 sm:px-4 py-1 sm:py-2 cursor-pointer transition-colors ${
             selectedLanguage === option.value ? "bg-gray-900 text-white" : ""
           }`}
           onClick={() => onLanguageChange(option.value)}
+          aria-pressed={selectedLanguage === option.value}
         >
           {option.label}
         </button>
