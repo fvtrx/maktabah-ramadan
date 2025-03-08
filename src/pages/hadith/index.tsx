@@ -6,7 +6,7 @@ import LanguageSelector from "@src/components/LanguageSelector";
 import { Bookmark, Hadith, useHadithStore } from "@src/store";
 import { copyHadithText } from "@src/utils/helpers/string";
 import useToast from "@src/utils/hooks/useToast";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 
 const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
@@ -50,12 +50,15 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   const [copied, setCopied] = useState(false);
   const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
 
+  const initialRenderRef = useRef<boolean>(true);
+
   useEffect(() => {
-    // Only close sidebar on mobile if it's currently open
-    if (isMobile && isSidebarOpen) {
+    // Only run once on initial render for mobile devices
+    if (initialRenderRef.current && isMobile && isSidebarOpen) {
       toggleSidebar();
+      initialRenderRef.current = false;
     }
-  }, [isMobile, isSidebarOpen, toggleSidebar]);
+  }, [isMobile]);
 
   // Initialize hadiths data
   useEffect(() => {
