@@ -1,6 +1,7 @@
 import { Bookmark, DisplayLanguage, Hadith } from "@src/store";
 import { directDownload } from "@src/utils/helpers/shareHadith"; // Import the screenshot function
 import startCase from "lodash/startCase";
+import { DownloadIcon } from "lucide-react";
 import React, { FC, useEffect, useRef, useState } from "react";
 
 type Props = {
@@ -228,9 +229,8 @@ const HadithDetailsModal: FC<Props> = ({
 
           <div className="flex gap-2">
             <button
-              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-xs sm:text-sm"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white text-xs sm:text-sm flex place-items-center gap-2 bg-indigo-600 hover:bg-indigo-700"
               style={{
-                backgroundColor: "#6c757d",
                 transition: "all 150ms ease",
               }}
               onClick={() => {
@@ -240,7 +240,14 @@ const HadithDetailsModal: FC<Props> = ({
                 });
               }}
             >
-              {isSharing ? "Processing..." : "Download"}
+              {isSharing ? (
+                "Processing..."
+              ) : (
+                <>
+                  <DownloadIcon />
+                  Download
+                </>
+              )}
             </button>
           </div>
         </div>
