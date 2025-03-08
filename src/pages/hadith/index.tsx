@@ -7,6 +7,7 @@ import { Bookmark, Hadith, useHadithStore } from "@src/store";
 import { copyHadithText } from "@src/utils/helpers/string";
 import useToast from "@src/utils/hooks/useToast";
 import React, { useEffect, useState } from "react";
+import { useMediaQuery } from "react-responsive";
 
 const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   initialHadithId,
@@ -47,6 +48,14 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   const toast = useToast();
   const [viewingHadithId, setViewingHadithId] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
+
+  useEffect(() => {
+    // Only close sidebar on mobile if it's currently open
+    if (isMobile && isSidebarOpen) {
+      toggleSidebar();
+    }
+  }, [isMobile, isSidebarOpen, toggleSidebar]);
 
   // Initialize hadiths data
   useEffect(() => {

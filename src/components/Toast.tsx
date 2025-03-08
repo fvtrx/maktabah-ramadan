@@ -102,7 +102,7 @@ const Toast = ({
 
   return (
     <div
-      className={`my-4 flex w-[640px] items-center rounded-lg bg-white p-4 shadow-2xl ${
+      className={`my-4 flex w-full max-w-[640px] mx-auto items-center rounded-lg bg-white p-4 shadow-2xl ${
         fadeOut ? "opacity-0" : fadeIn ? "opacity-100" : "opacity-0"
       } transition-opacity duration-500`}
       style={{
@@ -112,17 +112,21 @@ const Toast = ({
       }}
     >
       {ICON[variant]}
-      <div>
-        <span className="text-black/65">{content}</span>
+      <div className="flex-1 min-w-0">
+        <span className="text-black/65 text-sm sm:text-base break-words">
+          {content}
+        </span>
         {ctaText && ctaLink && (
           <Link href={ctaLink}>
-            <button className={`block ${TEXT_COLOR[ctaTextColor]}`}>
+            <button
+              className={`block mt-1 text-sm sm:text-base ${TEXT_COLOR[ctaTextColor]}`}
+            >
               {ctaText}
             </button>
           </Link>
         )}
       </div>
-      <button className="ml-auto" onClick={handleClose}>
+      <button className="ml-2 sm:ml-4 flex-shrink-0" onClick={handleClose}>
         <CloseIcon width={16} className="text-black font-bold" />
       </button>
     </div>

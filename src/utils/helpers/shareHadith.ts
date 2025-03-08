@@ -538,7 +538,6 @@ export const directDownload = async (
     requestAnimationFrame(() => {
       setTimeout(() => {
         modalContainer.style.opacity = "1";
-        modalContent.style.transform = "scale(1)";
         modalContent.style.opacity = "1";
       }, 50);
     });
