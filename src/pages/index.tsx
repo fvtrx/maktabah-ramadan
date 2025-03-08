@@ -101,20 +101,20 @@ export default function Home() {
                 }`}
               >
                 <div className="absolute -top-6 -left-6 text-6xl text-amber-400 opacity-50">
-                  "
+                  &quot;
                 </div>
                 <div className="absolute -bottom-16 -right-6 text-6xl text-amber-400 opacity-50">
-                  "
+                  &quot;
                 </div>
 
                 <p className="text-gray-100 text-lg leading-relaxed italic z-10 relative">
-                  Daripada Abu Hurairah RA, daripada Nabi ﷺ bersabda: "Sesiapa
-                  yang berpuasa Ramadan dengan penuh keimanan dan{" "}
+                  Daripada Abu Hurairah RA, daripada Nabi ﷺ bersabda:
+                  &quot;Sesiapa yang berpuasa Ramadan dengan penuh keimanan dan{" "}
                   <span className="text-amber-300 font-semibold italic">
                     ihtisab
                   </span>{" "}
                   (mengharapkan keredhaan Allah) akan diampunkan dosanya yang
-                  terdahulu."
+                  terdahulu.&quot;
                 </p>
 
                 <div className="mt-6 pt-4 border-t border-violet-600 text-gray-300 text-sm italic">

@@ -199,7 +199,16 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     if (savedBookmarks) {
       setBookmarks(JSON.parse(savedBookmarks));
     }
-  }, []);
+  }, [
+    setBookOptions,
+    setBookmarks,
+    setBooks,
+    setCollections,
+    setFilteredHadiths,
+    setHadiths,
+    setIsLoading,
+    setNarrators,
+  ]);
 
   useEffect(() => {
     const newBookOptions =
@@ -215,7 +224,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
 
     setBookOptions(newBookOptions);
     setSelectedBook("all");
-  }, [selectedCollection, hadiths, books]);
+  }, [setBookOptions, setSelectedBook, selectedCollection, hadiths, books]);
 
   useEffect(() => {
     const applyFilters = (results: Hadith[]): Hadith[] => {
@@ -262,6 +271,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     const filteredResults = applySearch(applyFilters([...hadiths]));
     setFilteredHadiths(filteredResults);
   }, [
+    setFilteredHadiths,
     searchTerm,
     selectedCollection,
     selectedBook,
@@ -324,7 +334,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
         setViewingHadithId(hadith.id);
       }
     }
-  }, [initialHadithId, hadiths]);
+  }, [initialHadithId, hadiths, setSelectedHadith]);
 
   const openHadithDetails = (hadith: Hadith) => {
     setSelectedHadith(hadith);
@@ -371,7 +381,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [hadiths, viewingHadithId]);
+  }, [hadiths, viewingHadithId, setSelectedHadith]);
 
   return (
     <Layout

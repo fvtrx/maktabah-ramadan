@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "lint:fix:all": "eslint --fix '**/*.{ts,tsx}'"
   },
   "dependencies": {
     "@tailwindcss/container-queries": "^0.1.1",

@@ -168,7 +168,7 @@ export const directDownload = async (
       const headerArea = contentClone.querySelector(
         ".flex.justify-between.items-center.p-6"
       );
-      let titleElement = headerArea?.querySelector("h2") || null;
+      const titleElement = headerArea?.querySelector("h2") || null;
 
       if (titleElement) {
         // Create a new heading element for the white card

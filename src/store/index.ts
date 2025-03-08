@@ -165,7 +165,6 @@ export const useHadithStore = create<HadithState>((set, get) => ({
       selectedCollection,
       selectedBook,
       selectedNarrator,
-      selectedGrade,
     } = get();
 
     let filtered = [...hadiths];
