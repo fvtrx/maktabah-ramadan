@@ -27,9 +27,8 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     bookmarks,
     selectedGrade,
 
-    // Actions
+    // Actions - group related actions together
     setHadiths,
-    setDisplayLanguage,
     setFilteredHadiths,
     setSelectedHadith,
     setIsLoading,
@@ -40,14 +39,16 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     setBooks,
     setSelectedBook,
     setSearchTerm,
+    setDisplayLanguage,
     resetFilters,
     toggleSidebar,
   } = useHadithStore();
-  const toast = useToast();
 
+  const toast = useToast();
   const [viewingHadithId, setViewingHadithId] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Initialize hadiths data
   useEffect(() => {
     const mockHadiths: Hadith[] = [
       {
@@ -178,40 +179,40 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
       },
     ];
 
+    // Initialize state with mock data
     setHadiths(mockHadiths);
     setFilteredHadiths(mockHadiths);
     setIsLoading(false);
 
-    // Extract unique collections, books, narrators, etc.
+    // Extract unique metadata for filters
     const uniqueCollections = [
       ...new Set(mockHadiths.map((h) => h.collection)),
     ];
-    setCollections(uniqueCollections);
-
     const uniqueBooks = [...new Set(mockHadiths.map((h) => h.book))];
+    const uniqueNarrators = [...new Set(mockHadiths.map((h) => h.narrator))];
+
+    // Set filter options
+    setCollections(uniqueCollections);
     setBooks(uniqueBooks);
     setBookOptions(uniqueBooks);
-
-    const uniqueNarrators = [...new Set(mockHadiths.map((h) => h.narrator))];
     setNarrators(uniqueNarrators);
 
-    // Load saved bookmarks from localStorage if available
+    // Load saved bookmarks from localStorage
+    loadSavedBookmarks();
+  }, []);
+
+  // Load bookmarks from localStorage
+  const loadSavedBookmarks = () => {
     const savedBookmarks = localStorage.getItem("hadithBookmarks");
     if (savedBookmarks) {
       setBookmarks(JSON.parse(savedBookmarks));
     }
-  }, [
-    setBookOptions,
-    setBookmarks,
-    setBooks,
-    setCollections,
-    setFilteredHadiths,
-    setHadiths,
-    setIsLoading,
-    setNarrators,
-  ]);
+  };
 
+  // Update book options when collection changes
   useEffect(() => {
+    if (!hadiths.length) return;
+
     const newBookOptions =
       selectedCollection === "all"
         ? books
@@ -225,60 +226,59 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
 
     setBookOptions(newBookOptions);
     setSelectedBook("all");
-  }, [setBookOptions, setSelectedBook, selectedCollection, hadiths, books]);
+  }, [selectedCollection, hadiths, books]);
 
+  // Apply filters and search
   useEffect(() => {
-    const applyFilters = (results: Hadith[]): Hadith[] => {
-      if (showBookmarks) {
-        results = results.filter((hadith) =>
-          bookmarks.some((bookmark) => bookmark.id === hadith.id)
-        );
-      }
+    if (!hadiths.length) return;
 
-      if (selectedCollection !== "all") {
-        results = results.filter(
-          (hadith) => hadith.collection === selectedCollection
-        );
-      }
+    // Filter by bookmarks, collection, book, and narrator
+    let results = [...hadiths];
 
-      if (selectedBook !== "all") {
-        results = results.filter((hadith) => hadith.book === selectedBook);
-      }
-
-      if (selectedNarrator !== "all") {
-        results = results.filter(
-          (hadith) => hadith.narrator === selectedNarrator
-        );
-      }
-
-      return results;
-    };
-
-    const applySearch = (results: Hadith[]): Hadith[] => {
-      if (searchTerm.trim() === "") return results;
-
-      const term = searchTerm.toLowerCase();
-      return results.filter(
-        (hadith) =>
-          hadith.translation.toLowerCase().includes(term) ||
-          hadith.arabicText?.toLowerCase().includes(term) ||
-          hadith.narrator.toLowerCase().includes(term) ||
-          hadith.book.toLowerCase().includes(term) ||
-          hadith.number.includes(term) ||
-          hadith.chapter.toLowerCase().includes(term)
+    if (showBookmarks) {
+      results = results.filter((hadith) =>
+        bookmarks.some((bookmark) => bookmark.id === hadith.id)
       );
-    };
+    }
 
-    const filteredResults = applySearch(applyFilters([...hadiths]));
-    setFilteredHadiths(filteredResults);
+    if (selectedCollection !== "all") {
+      results = results.filter(
+        (hadith) => hadith.collection === selectedCollection
+      );
+    }
+
+    if (selectedBook !== "all") {
+      results = results.filter((hadith) => hadith.book === selectedBook);
+    }
+
+    if (selectedNarrator !== "all") {
+      results = results.filter(
+        (hadith) => hadith.narrator === selectedNarrator
+      );
+    }
+
+    // Apply search term if present
+    if (searchTerm.trim() !== "") {
+      const term = searchTerm.toLowerCase();
+      results = results.filter(
+        (hadith) =>
+          hadith.translation?.toLowerCase().includes(term) ||
+          hadith.arabicText?.toLowerCase().includes(term) ||
+          hadith.narrator?.toLowerCase().includes(term) ||
+          hadith.book?.toLowerCase().includes(term) ||
+          hadith.number?.includes(term) ||
+          hadith.chapter?.toLowerCase().includes(term)
+      );
+    }
+
+    setFilteredHadiths(results);
   }, [
-    setFilteredHadiths,
+    hadiths,
     searchTerm,
     selectedCollection,
     selectedBook,
     selectedNarrator,
     selectedGrade,
-    hadiths,
     bookmarks,
     showBookmarks,
   ]);
@@ -322,25 +322,28 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
       dateAdded: new Date().toISOString(),
     };
 
-    const newBookmarks = [...bookmarks, newBookmark];
-    updateBookmarks(newBookmarks, "Hadith bookmarked!");
+    updateBookmarks([...bookmarks, newBookmark], "Hadith bookmarked!");
   };
 
+  // Initialize with URL hadith ID if present
   useEffect(() => {
     if (initialHadithId && hadiths.length > 0) {
       const id = parseInt(initialHadithId, 10);
       const hadith = hadiths.find((h) => h.id === id);
+
       if (hadith) {
         setSelectedHadith(hadith);
         setViewingHadithId(hadith.id);
       }
     }
-  }, [initialHadithId, hadiths, setSelectedHadith]);
+  }, [initialHadithId, hadiths]);
 
+  // Hadith navigation handlers
   const openHadithDetails = (hadith: Hadith) => {
     setSelectedHadith(hadith);
     setViewingHadithId(hadith.id);
 
+    // Update URL
     if (!initialHadithId || parseInt(initialHadithId, 10) !== hadith.id) {
       window.history.pushState(
         { hadithId: hadith.number },
@@ -354,6 +357,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     setSelectedHadith(null);
     setViewingHadithId(null);
 
+    // Update URL
     if (!initialHadithId) {
       window.history.pushState({ hadithId: null }, "", "/hadith");
     } else {
@@ -361,6 +365,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     }
   };
 
+  // Handle browser navigation
   useEffect(() => {
     const handlePopState = () => {
       const matches = window.location.pathname.match(/\/hadith\/(\d+)/);
@@ -382,7 +387,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [hadiths, viewingHadithId, setSelectedHadith]);
+  }, [hadiths, viewingHadithId]);
 
   return (
     <Layout
