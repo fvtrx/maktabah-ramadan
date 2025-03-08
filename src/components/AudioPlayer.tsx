@@ -14,8 +14,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
 
   // Handle user interaction
   const handleInteraction = () => {
-    const audioRefCurrent = audioRef.current;
-    if (!hasInteracted && audioRefCurrent) {
+    if (!hasInteracted && audioRef.current) {
+      const audioRefCurrent = audioRef.current;
       setHasInteracted(true);
 
       audioRefCurrent
@@ -41,8 +41,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, onAudioEnabled }) => {
 
   // Setup audio element when component mounts
   useEffect(() => {
-    const audioRefCurrent = audioRef.current;
-    if (audioRefCurrent) {
+    if (audioRef.current) {
+      const audioRefCurrent = audioRef.current;
       // Set up audio event listeners
       const handleEnded = () => setIsPlaying(false);
       const handlePlay = () => setIsPlaying(true);

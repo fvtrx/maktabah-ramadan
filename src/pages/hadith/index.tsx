@@ -2,6 +2,7 @@ import Layout from "@src/components/common/Layout";
 import FilterHadithSidebar from "@src/components/FilterHadithSidebar";
 import HadithCard from "@src/components/HadithCard";
 import HadithDetailsModal from "@src/components/HadithDetailsModal";
+import LanguageSelector from "@src/components/LanguageSelector";
 import { Bookmark, Hadith, useHadithStore } from "@src/store";
 import { copyHadithText } from "@src/utils/helpers/string";
 import useToast from "@src/utils/hooks/useToast";
@@ -407,32 +408,10 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
             </div>
 
             {/* Language switcher */}
-            <div className="flex gap-1 text-sm bg-gray-50 rounded-full overflow-hidden">
-              <button
-                className={`px-4 py-2 ${
-                  displayLanguage === "both" ? "bg-gray-900 text-white" : ""
-                }`}
-                onClick={() => setDisplayLanguage("both")}
-              >
-                Both
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  displayLanguage === "arabic" ? "bg-gray-900 text-white" : ""
-                }`}
-                onClick={() => setDisplayLanguage("arabic")}
-              >
-                Arabic
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  displayLanguage === "malay" ? "bg-gray-900 text-white" : ""
-                }`}
-                onClick={() => setDisplayLanguage("malay")}
-              >
-                Malay
-              </button>
-            </div>
+            <LanguageSelector
+              selectedLanguage={displayLanguage}
+              onLanguageChange={(value) => setDisplayLanguage(value)}
+            />
           </div>
         </header>
 
