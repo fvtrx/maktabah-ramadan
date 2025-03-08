@@ -31,8 +31,6 @@ export default function Home() {
       title="Maktabah Ramadan"
       description="Sebuah platform yang menghimpunkan kesemua hadis-hadis yang berkaitan dengan bulan Ramadan"
     >
-      {/* Audio player is rendered first and standalone */}
-
       <div
         style={{
           backgroundColor: "rgba(0, 0, 0, 0.25)",
