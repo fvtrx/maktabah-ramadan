@@ -3,7 +3,7 @@ declare global {
     html2canvas: (
       element: HTMLElement,
       options: {
-        backgroundColor: string;
+        backgroundColor: string | null;
         scale: number;
         useCORS: boolean;
         logging: boolean;
@@ -131,31 +131,126 @@ export const directDownload = async (
       element.style.marginBottom = "10px";
     });
 
-    // Create footer element for the bottom-center logo
+    // Create a temporary container for the gradient background
+    const gradientContainer = document.createElement("div");
+    gradientContainer.style.width = "1200px";
+    gradientContainer.style.minHeight = "800px";
+    gradientContainer.style.position = "fixed";
+    gradientContainer.style.left = "-9999px";
+    gradientContainer.style.top = "-9999px";
+    gradientContainer.style.background =
+      "linear-gradient(135deg, #fde047 0%, #fb923c 100%)";
+    gradientContainer.style.padding = "60px";
+    gradientContainer.style.boxSizing = "border-box";
+    gradientContainer.style.display = "flex";
+    gradientContainer.style.justifyContent = "center";
+    gradientContainer.style.alignItems = "center";
+
+    // Create a white card for the content
+    const whiteCard = document.createElement("div");
+    whiteCard.style.backgroundColor = "white";
+    whiteCard.style.borderRadius = "24px";
+    whiteCard.style.boxShadow = "0 10px 25px -5px rgba(0, 0, 0, 0.1)";
+    whiteCard.style.padding = "40px";
+    whiteCard.style.boxSizing = "border-box";
+    whiteCard.style.width = "100%";
+    whiteCard.style.maxWidth = "800px";
+
+    // Clone the modal content
+    const contentClone = modalRef.current.cloneNode(true) as HTMLElement;
+
+    // Extract the main content area from the clone
+    const mainContent = contentClone.querySelector(
+      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto"
+    );
+    if (mainContent) {
+      // Extract the title from the header section
+      const headerArea = contentClone.querySelector(
+        ".flex.justify-between.items-center.p-6"
+      );
+      let titleElement = headerArea?.querySelector("h2") || null;
+
+      if (titleElement) {
+        // Create a new heading element for the white card
+        const heading = document.createElement("h1");
+        heading.textContent = titleElement.textContent || "";
+        heading.style.fontSize = "28px";
+        heading.style.fontWeight = "600";
+        heading.style.marginBottom = "10px";
+        heading.style.color = "#111827";
+        whiteCard.appendChild(heading);
+
+        // Add the source if available
+        const sourceElement = headerArea?.querySelector(
+          ".text-sm.text-gray-400"
+        );
+        if (sourceElement) {
+          const sourceText = document.createElement("p");
+          sourceText.textContent = sourceElement.textContent || "";
+          sourceText.style.fontSize = "14px";
+          sourceText.style.color = "#6B7280";
+          sourceText.style.marginBottom = "20px";
+          whiteCard.appendChild(sourceText);
+        }
+      }
+
+      // Add a divider
+      const divider = document.createElement("hr");
+      divider.style.border = "none";
+      divider.style.borderTop = "1px solid #E5E7EB";
+      divider.style.margin = "20px 0";
+      whiteCard.appendChild(divider);
+
+      // Remove any buttons or UI elements
+      const buttonsToRemove = mainContent.querySelectorAll(
+        "button, [role='button']"
+      );
+      buttonsToRemove.forEach((button) => {
+        if (button.parentNode) {
+          button.parentNode.removeChild(button);
+        }
+      });
+
+      // Hide keywords section in the clone
+      const keywordsToHide = mainContent.querySelector(
+        ".flex.flex-wrap.pt-6.gap-2.items-center"
+      );
+      if (keywordsToHide && keywordsToHide.parentNode) {
+        keywordsToHide.parentNode.removeChild(keywordsToHide);
+      }
+
+      // Reset styles on the main content
+      (mainContent as HTMLElement).style.padding = "0";
+      (mainContent as HTMLElement).style.maxHeight = "none";
+      (mainContent as HTMLElement).style.overflowY = "visible";
+
+      // Add the content to the white card
+      whiteCard.appendChild(mainContent);
+    }
+
+    // Add footer with Maktabah Ramadan logo
     const footerElement = document.createElement("div");
-    footerElement.style.borderTop = "none";
-    footerElement.style.padding = "30px 0 20px 0";
+    footerElement.style.borderTop = "1px solid #E5E7EB";
+    footerElement.style.paddingTop = "20px";
     footerElement.style.marginTop = "30px";
     footerElement.style.textAlign = "center";
-    footerElement.style.backgroundColor = "white";
-    footerElement.style.width = "100%";
     footerElement.style.display = "flex";
     footerElement.style.justifyContent = "center";
     footerElement.style.alignItems = "center";
 
-    // Add the Maktabah Ramadan logo to the footer
     footerElement.innerHTML = `
-  <div style="display: flex; align-items: center; justify-content: center; line-height: 1;">
-    <span style="font-size: 20px; margin-right: 6px; color: #333; display: inline-block;">☪</span>
-    <span style="font-weight: 600; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: inline-block;">
-      <span style="color: #000000; font-size: 17px;">Maktabah</span>
-      <span style="color: #8b5cf6; font-size: 17px;">Ramadan</span>
-    </span>
-  </div>
-`;
+      <div style="display: flex; align-items: center; justify-content: center; line-height: 1;">
+        <span style="font-size: 20px; margin-right: 6px; color: #333; display: inline-block;">☪</span>
+        <span style="font-weight: 600; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: inline-block;">
+          <span style="color: #000000; font-size: 17px;">Maktabah</span>
+          <span style="color: #8b5cf6; font-size: 17px;">Ramadan</span>
+        </span>
+      </div>
+    `;
 
-    // Append the footer to the modal content
-    modalRef.current.appendChild(footerElement);
+    whiteCard.appendChild(footerElement);
+    gradientContainer.appendChild(whiteCard);
+    document.body.appendChild(gradientContainer);
 
     // Wait for styles to apply
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -176,33 +271,29 @@ export const directDownload = async (
     loadingIndicator.innerHTML = "Generating image...";
     document.body.appendChild(loadingIndicator);
 
-    // Capture the modal with improved styling - with timeout to ensure DOM is ready
+    // Capture the styled container
     await new Promise((resolve) => setTimeout(resolve, 100));
-    const canvas = await window.html2canvas(modalRef.current, {
+    const canvas = await window.html2canvas(gradientContainer, {
       allowTaint: true,
       useCORS: true,
       scale: 2,
-      backgroundColor: "#ffffff",
+      backgroundColor: null,
       logging: false,
       onclone: (clonedDoc) => {
-        // Find and hide keywords section in clone too
-        const clonedKeywordsSection = clonedDoc.querySelector(
-          ".flex.flex-wrap.pt-6.gap-2.items-center"
-        );
-        if (clonedKeywordsSection) {
-          (clonedKeywordsSection as HTMLElement).style.display = "none";
-        }
+        // Ensure ordered lists are visible in the clone
+        const clonedLists = clonedDoc.querySelectorAll("ol");
+        clonedLists.forEach((ol) => {
+          (ol as HTMLElement).style.listStyleType = "decimal";
+          (ol as HTMLElement).style.paddingLeft = "40px";
+        });
 
-        // Remove scroll constraints in cloned document as well
-        const clonedScrollableDiv = clonedDoc.querySelector(
-          ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\]"
-        );
-        if (clonedScrollableDiv) {
-          (clonedScrollableDiv as HTMLElement).style.overflowY = "visible";
-          (clonedScrollableDiv as HTMLElement).style.maxHeight = "none";
-        }
+        const clonedListItems = clonedDoc.querySelectorAll("li");
+        clonedListItems.forEach((li) => {
+          (li as HTMLElement).style.marginBottom = "12px";
+          (li as HTMLElement).style.color = "#374151";
+        });
 
-        // Handle oklch colors
+        // Handle oklch colors to prevent parsing errors
         const allElements = clonedDoc.querySelectorAll("*");
         allElements.forEach((element) => {
           const computedStyle = window.getComputedStyle(element);
@@ -225,52 +316,32 @@ export const directDownload = async (
             }
           }
         });
-
-        // Enhance keyword chips in the cloned document if they're still visible
-        const keywordChips = clonedDoc.querySelectorAll(
-          ".text-xs.px-2.py-1.rounded-full.bg-gray-50.text-gray-500"
-        );
-        keywordChips.forEach((chip) => {
-          (chip as HTMLElement).style.backgroundColor = "#f3f4f6";
-          (chip as HTMLElement).style.color = "#4b5563";
-          (chip as HTMLElement).style.padding = "4px 12px";
-          (chip as HTMLElement).style.borderRadius = "9999px";
-          (chip as HTMLElement).style.fontWeight = "500";
-          (chip as HTMLElement).style.fontSize = "0.75rem";
-          (chip as HTMLElement).style.margin = "0 4px 4px 0";
-          (chip as HTMLElement).style.display = "inline-block";
-        });
-
-        // Fix modal height and other layout issues
-        const clonedModal = clonedDoc.querySelector('[class*="rounded-xl"]');
-        if (clonedModal) {
-          (clonedModal as HTMLElement).style.maxHeight = "none";
-          (clonedModal as HTMLElement).style.overflow = "visible";
-          (clonedModal as HTMLElement).style.boxShadow =
-            "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)";
-        }
       },
     });
 
-    // Clean up: Remove the footer element
-    if (footerElement.parentNode === modalRef.current) {
-      modalRef.current.removeChild(footerElement);
+    // Clean up: Remove the temporary container
+    if (gradientContainer.parentNode) {
+      document.body.removeChild(gradientContainer);
     }
 
-    // Restore original ordered list styles
-    originalOlStyles.forEach(({ element, listStyleType, paddingLeft }) => {
-      element.style.listStyleType = listStyleType;
-      element.style.paddingLeft = paddingLeft;
+    // Restore original styles
+    orderedLists.forEach((ol, index) => {
+      if (index < originalOlStyles.length) {
+        const { element, listStyleType, paddingLeft } = originalOlStyles[index];
+        element.style.listStyleType = listStyleType;
+        element.style.paddingLeft = paddingLeft;
+      }
     });
 
-    // Restore original list item styles
-    originalListStyles.forEach(
-      ({ element, position, paddingLeft, marginBottom }) => {
+    orderedListItems.forEach((li, index) => {
+      if (index < originalListStyles.length) {
+        const { element, position, paddingLeft, marginBottom } =
+          originalListStyles[index];
         element.style.position = position;
         element.style.paddingLeft = paddingLeft;
         element.style.marginBottom = marginBottom;
       }
-    );
+    });
 
     // Restore button section
     if (buttonSection) {
@@ -348,9 +419,7 @@ export const directDownload = async (
     <h2 style="margin: 0; font-size: 24px; font-weight: 700; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
       <span style="font-size: 24px; margin-right: 8px; color: #000000;">☪</span>
       <span style="color: #000000;">Maktabah</span>
-      <span style="background: linear-gradient(to right, #7c3aed, #c4b5fd); -webkit-background-clip: text; background-clip: text; color: transparent;">
-        Ramadan
-      </span>
+      <span style="color: #8b5cf6;">Ramadan</span>
     </h2>
   </div>
 `;
@@ -557,9 +626,6 @@ export const directDownload = async (
     container.appendChild(modalHeader);
     container.appendChild(imageContainer);
     modal.appendChild(container);
-    document.body.appendChild(modal);
-
-    // Add the modal to the DOM first but keep it invisible during initial layout
     document.body.appendChild(modal);
 
     // Force a reflow before starting animations to prevent layout glitches
