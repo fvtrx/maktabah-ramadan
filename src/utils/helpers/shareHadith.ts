@@ -19,19 +19,46 @@ export const directDownload = async (
 ): Promise<void> => {
   if (!modalRef.current) return;
 
+  // Store all modified elements and their original styles
+  const modifiedElements = new Map<HTMLElement, Record<string, string>>();
+
+  // Helper to save original style
+  const saveOriginalStyle = (element: HTMLElement, styleProps: string[]) => {
+    const originalStyles: Record<string, string> = {};
+    styleProps.forEach((prop) => {
+      originalStyles[prop] = element.style[prop as any] || "";
+    });
+    modifiedElements.set(element, originalStyles);
+  };
+
+  // Helper to restore original style
+  const restoreOriginalStyle = () => {
+    modifiedElements.forEach((originalStyles, element) => {
+      if (element) {
+        Object.keys(originalStyles).forEach((prop) => {
+          element.style[prop as any] = ""; // First clear any inline style
+        });
+        // Force a reflow
+        void element.offsetHeight;
+        // Then apply original if needed (if not empty)
+        Object.keys(originalStyles).forEach((prop) => {
+          if (originalStyles[prop]) {
+            element.style[prop as any] = originalStyles[prop];
+          }
+        });
+      }
+    });
+  };
+
   try {
     // Find elements to temporarily hide or modify
     const buttonSection = modalRef.current.querySelector(
       '[class*="px-6 pt-4 border-t"], [class*="px-3 sm:px-6 pt-3 sm:pt-4 border-t"]'
-    );
+    ) as HTMLElement | null;
 
     const bookmarkButton = modalRef.current.querySelector(
       ".text-lg.text-gray-400.hover\\:text-yellow-500, .text-lg.sm\\:text-lg.text-gray-400.hover\\:text-yellow-500"
-    );
-
-    // const closeButton = modalRef.current.querySelector(
-    //   ".text-gray-400.hover\\:text-gray-600"
-    // );
+    ) as HTMLElement | null;
 
     // Add close button
     const closeButton = document.createElement("button");
@@ -47,50 +74,38 @@ export const directDownload = async (
     // Find keywords section to hide
     const keywordsSection = modalRef.current.querySelector(
       ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center"
-    );
+    ) as HTMLElement | null;
 
-    // Store original styles
-    let originalButtonDisplay = "flex";
-    let originalKeywordsDisplay = "flex";
-    let originalOverflowY = "auto";
-    let originalMaxHeight = "70vh";
-
-    // Find the scrollable content div and remove its height constraints
+    // Find the scrollable content div
     const scrollableDiv = modalRef.current.querySelector(
       ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\], .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto.max-h-\\[60vh\\].sm\\:max-h-\\[70vh\\]"
-    );
+    ) as HTMLElement | null;
 
+    // Save original styles before modifying them
     if (scrollableDiv) {
-      originalOverflowY =
-        (scrollableDiv as HTMLElement).style.overflowY || "auto";
-      originalMaxHeight =
-        (scrollableDiv as HTMLElement).style.maxHeight || "70vh";
-
-      // Remove scroll constraints for the screenshot
-      (scrollableDiv as HTMLElement).style.overflowY = "visible";
-      (scrollableDiv as HTMLElement).style.maxHeight = "none";
+      saveOriginalStyle(scrollableDiv, ["overflowY", "maxHeight"]);
+      scrollableDiv.style.overflowY = "visible";
+      scrollableDiv.style.maxHeight = "none";
     }
 
     if (buttonSection) {
-      originalButtonDisplay =
-        (buttonSection as HTMLElement).style.display || "flex";
-      (buttonSection as HTMLElement).style.display = "none";
+      saveOriginalStyle(buttonSection, ["display"]);
+      buttonSection.style.display = "none";
     }
 
-    // Hide keywords section
     if (keywordsSection) {
-      originalKeywordsDisplay =
-        (keywordsSection as HTMLElement).style.display || "flex";
-      (keywordsSection as HTMLElement).style.display = "none";
+      saveOriginalStyle(keywordsSection, ["display"]);
+      keywordsSection.style.display = "none";
     }
 
-    // Hide buttons
     if (bookmarkButton) {
-      (bookmarkButton as HTMLElement).style.display = "none";
+      saveOriginalStyle(bookmarkButton, ["display"]);
+      bookmarkButton.style.display = "none";
     }
 
     if (closeButton) {
-      (closeButton as HTMLElement).style.display = "none";
+      saveOriginalStyle(closeButton, ["display"]);
+      closeButton.style.display = "none";
     }
 
     // Load html2canvas if needed
@@ -107,36 +122,17 @@ export const directDownload = async (
     const orderedLists = modalRef.current.querySelectorAll("ol");
     const orderedListItems = modalRef.current.querySelectorAll("ol > li");
 
-    // Save original styles
-    const originalOlStyles = Array.from(orderedLists).map((ol) => {
-      const element = ol as HTMLElement;
-      return {
-        element,
-        listStyleType: element.style.listStyleType,
-        paddingLeft: element.style.paddingLeft,
-      };
-    });
-
-    const originalListStyles = Array.from(orderedListItems).map((li) => {
-      const element = li as HTMLElement;
-      return {
-        element,
-        position: element.style.position,
-        paddingLeft: element.style.paddingLeft,
-        marginBottom: element.style.marginBottom,
-      };
-    });
-
-    // Apply consistent styling to ordered lists
+    // Save original styles for lists and list items
     orderedLists.forEach((ol) => {
       const element = ol as HTMLElement;
+      saveOriginalStyle(element, ["listStyleType", "paddingLeft"]);
       element.style.listStyleType = "decimal";
       element.style.paddingLeft = "20px";
     });
 
-    // Apply consistent styling to list items
     orderedListItems.forEach((li) => {
       const element = li as HTMLElement;
+      saveOriginalStyle(element, ["position", "paddingLeft", "marginBottom"]);
       element.style.position = "relative";
       element.style.paddingLeft = "15px";
       element.style.marginBottom = "10px";
@@ -335,48 +331,12 @@ export const directDownload = async (
       document.body.removeChild(gradientContainer);
     }
 
-    // Restore original styles
-    orderedLists.forEach((ol, index) => {
-      if (index < originalOlStyles.length) {
-        const { element, listStyleType, paddingLeft } = originalOlStyles[index];
-        element.style.listStyleType = listStyleType;
-        element.style.paddingLeft = paddingLeft;
-      }
-    });
+    // Restore all original styles by removing inline styles completely
+    restoreOriginalStyle();
 
-    orderedListItems.forEach((li, index) => {
-      if (index < originalListStyles.length) {
-        const { element, position, paddingLeft, marginBottom } =
-          originalListStyles[index];
-        element.style.position = position;
-        element.style.paddingLeft = paddingLeft;
-        element.style.marginBottom = marginBottom;
-      }
-    });
-
-    // Restore button section
-    if (buttonSection) {
-      (buttonSection as HTMLElement).style.display = originalButtonDisplay;
-    }
-
-    // Restore keywords section
-    if (keywordsSection) {
-      (keywordsSection as HTMLElement).style.display = originalKeywordsDisplay;
-    }
-
-    // Restore scroll settings
-    if (scrollableDiv) {
-      (scrollableDiv as HTMLElement).style.overflowY = originalOverflowY;
-      (scrollableDiv as HTMLElement).style.maxHeight = originalMaxHeight;
-    }
-
-    // Restore buttons
-    if (bookmarkButton) {
-      (bookmarkButton as HTMLElement).style.display = "block";
-    }
-
-    if (closeButton) {
-      (closeButton as HTMLElement).style.display = "block";
+    // Force DOM reflow to ensure styles are properly applied
+    if (modalRef.current) {
+      void modalRef.current.offsetHeight;
     }
 
     // Remove the loading indicator
@@ -502,8 +462,16 @@ export const directDownload = async (
       modalContainer.style.opacity = "0";
       modalContent.style.transform = "scale(0.95)";
       modalContent.style.opacity = "0";
+
       setTimeout(() => {
-        document.body.removeChild(modalContainer);
+        if (document.body.contains(modalContainer)) {
+          document.body.removeChild(modalContainer);
+        }
+
+        // Force UI update to ensure proper layout on mobile
+        if (modalRef.current) {
+          void modalRef.current.offsetHeight;
+        }
       }, 300);
     };
 
@@ -539,10 +507,14 @@ export const directDownload = async (
       setTimeout(() => {
         modalContainer.style.opacity = "1";
         modalContent.style.opacity = "1";
+        modalContent.style.transform = "scale(1)";
       }, 50);
     });
   } catch (error) {
     console.error("Error capturing and downloading image:", error);
     alert("There was an error generating the image. Please try again.");
+
+    // Ensure styles are restored even in case of error
+    restoreOriginalStyle();
   }
 };
