@@ -20,13 +20,29 @@ export const directDownload = async (
   if (!modalRef.current) return;
 
   // Store all modified elements and their original styles
+  // Use a more specific approach for handling CSS properties
   const modifiedElements = new Map<HTMLElement, Record<string, string>>();
+
+  // Helper to safely get and set CSS properties
+  const getCssPropertyValue = (element: HTMLElement, prop: string): string => {
+    return element.style.getPropertyValue(prop);
+  };
+
+  const setCssPropertyValue = (
+    element: HTMLElement,
+    prop: string,
+    value: string
+  ): void => {
+    element.style.setProperty(prop, value);
+  };
 
   // Helper to save original style
   const saveOriginalStyle = (element: HTMLElement, styleProps: string[]) => {
     const originalStyles: Record<string, string> = {};
     styleProps.forEach((prop) => {
-      originalStyles[prop] = element.style[prop as any] || "";
+      // Convert camelCase to kebab-case for CSS properties
+      const kebabProp = prop.replace(/([A-Z])/g, "-$1").toLowerCase();
+      originalStyles[prop] = getCssPropertyValue(element, kebabProp);
     });
     modifiedElements.set(element, originalStyles);
   };
@@ -36,14 +52,19 @@ export const directDownload = async (
     modifiedElements.forEach((originalStyles, element) => {
       if (element) {
         Object.keys(originalStyles).forEach((prop) => {
-          element.style[prop as any] = ""; // First clear any inline style
+          // Convert camelCase to kebab-case for CSS properties
+          const kebabProp = prop.replace(/([A-Z])/g, "-$1").toLowerCase();
+          // First clear any inline style
+          setCssPropertyValue(element, kebabProp, "");
         });
         // Force a reflow
         void element.offsetHeight;
         // Then apply original if needed (if not empty)
         Object.keys(originalStyles).forEach((prop) => {
           if (originalStyles[prop]) {
-            element.style[prop as any] = originalStyles[prop];
+            // Convert camelCase to kebab-case for CSS properties
+            const kebabProp = prop.replace(/([A-Z])/g, "-$1").toLowerCase();
+            setCssPropertyValue(element, kebabProp, originalStyles[prop]);
           }
         });
       }
