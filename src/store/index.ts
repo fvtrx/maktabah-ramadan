@@ -1,22 +1,9 @@
+import { Hadith } from "@src/utils/queries/usePostAllHadith";
 import { create } from "zustand";
 
 // Type definitions
 export type DisplayLanguage = "arabic" | "malay" | "both";
 export type HadithGrade = "sahih" | "hasan" | "hasan_sahih" | "daif";
-
-export interface Hadith {
-  id: number;
-  collection: string;
-  book: string;
-  number: string;
-  source: string;
-  narrator: string;
-  translation: string;
-  arabicText?: string;
-  chapter: string;
-  topics?: string[];
-  lessons: string[];
-}
 
 export interface Bookmark {
   id: number;
@@ -36,7 +23,6 @@ interface HadithState {
   bookmarks: (Bookmark | { id: number; hadithId: number; dateAdded: string })[];
 
   // UI state
-  isLoading: boolean;
   selectedHadith: Hadith | null;
   showBookmarks: boolean;
   displayLanguage: DisplayLanguage;
@@ -53,7 +39,7 @@ interface HadithState {
   // Actions
   setHadiths: (hadiths: Hadith[]) => void;
   setFilteredHadiths: (filteredHadiths: Hadith[]) => void;
-  setIsLoading: (isLoading: boolean) => void;
+
   setSelectedHadith: (hadith: Hadith | null) => void;
   setCollections: (collections: string[]) => void;
   setBooks: (books: string[]) => void;
@@ -108,7 +94,6 @@ export const useHadithStore = create<HadithState>((set, get) => ({
   // State setters
   setHadiths: (hadiths) => set({ hadiths }),
   setFilteredHadiths: (filteredHadiths) => set({ filteredHadiths }),
-  setIsLoading: (isLoading) => set({ isLoading }),
   setSelectedHadith: (selectedHadith) => set({ selectedHadith }),
   setCollections: (collections) => set({ collections }),
   setBooks: (books) => set({ books }),
@@ -180,17 +165,17 @@ export const useHadithStore = create<HadithState>((set, get) => ({
     }
 
     // Apply narrator filter
-    if (selectedNarrator !== "all") {
-      filtered = filtered.filter((h) => h.narrator === selectedNarrator);
-    }
+    // if (selectedNarrator !== "all") {
+    //   filtered = filtered.filter((h) => h.narrator === selectedNarrator);
+    // }
 
     // Apply search term filter
     if (searchTerm.trim() !== "") {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (h) =>
-          h.translation.toLowerCase().includes(term) ||
-          h.translation.toLowerCase().includes(term)
+          h.meaning.toLowerCase().includes(term) ||
+          h.meaning.toLowerCase().includes(term)
       );
     }
 

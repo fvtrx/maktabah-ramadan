@@ -1,5 +1,6 @@
-import { Bookmark, DisplayLanguage, Hadith } from "@src/store";
+import { Bookmark, DisplayLanguage } from "@src/store";
 import { directDownload } from "@src/utils/helpers/shareHadith"; // Import the screenshot function
+import { Hadith } from "@src/utils/queries/usePostAllHadith";
 import startCase from "lodash/startCase";
 import { DownloadIcon } from "lucide-react";
 import React, { FC, useEffect, useRef, useState } from "react";
@@ -77,7 +78,7 @@ const HadithDetailsModal: FC<Props> = ({
         <div className="flex justify-between items-center p-3 sm:p-6 border-b border-gray-100">
           <div className="flex items-start flex-col gap-1 sm:gap-2 max-w-full sm:max-w-[620px]">
             <h2 className="text-lg sm:text-xl font-semibold line-clamp-2">
-              {startCase(selectedHadith.chapter.toLowerCase())}
+              {startCase(selectedHadith.title.toLowerCase())}
             </h2>
             <p className="text-xs sm:text-sm text-gray-400 text-wrap line-clamp-2">
               {selectedHadith.source}
@@ -107,14 +108,14 @@ const HadithDetailsModal: FC<Props> = ({
         </div>
 
         <div className="p-3 sm:p-4 sm:px-6 sm:pt-2.5 overflow-y-auto max-h-[60vh] sm:max-h-[70vh] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <div className="mb-4 sm:mb-6">
+          {/* <div className="mb-4 sm:mb-6">
             <h3 className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
               Diriwayatkan oleh:
             </h3>
             <p className="text-sm sm:text-base text-gray-700">
               {selectedHadith.narrator}
             </p>
-          </div>
+          </div> */}
 
           <div className="space-y-4 sm:space-y-6">
             {(displayLanguage === "arabic" || displayLanguage === "both") && (
@@ -135,7 +136,7 @@ const HadithDetailsModal: FC<Props> = ({
                   className="text-gray-700 leading-relaxed text-base sm:text-lg"
                   lang="ar"
                 >
-                  {selectedHadith.arabicText}
+                  {selectedHadith.arabic_text}
                 </p>
               </div>
             )}
@@ -154,7 +155,7 @@ const HadithDetailsModal: FC<Props> = ({
                   Maksud Hadis (Bahasa Malaysia)
                 </h3>
                 <p className="text-sm sm:text-base text-gray-700 leading-relaxed text-justify">
-                  {selectedHadith.translation}
+                  {selectedHadith.meaning}
                 </p>
               </div>
             )}
@@ -174,7 +175,7 @@ const HadithDetailsModal: FC<Props> = ({
               Pengajaran Hadis
             </h3>
             <ol className="list-decimal pl-4 sm:pl-5 space-y-1 sm:space-y-2 text-sm sm:text-base">
-              {selectedHadith.lessons.map((item, index) => {
+              {selectedHadith.lesson.map((item, index) => {
                 return (
                   <li key={index} className="text-justify">
                     {item}
@@ -184,7 +185,7 @@ const HadithDetailsModal: FC<Props> = ({
             </ol>
           </div>
 
-          <div className="flex flex-wrap pt-4 sm:pt-6 gap-1 sm:gap-2 items-center">
+          {/* <div className="flex flex-wrap pt-4 sm:pt-6 gap-1 sm:gap-2 items-center">
             <p className="text-xs sm:text-sm text-gray-500">Kata kunci:</p>
             <div className="flex flex-wrap gap-1 sm:gap-2">
               {selectedHadith.topics &&
@@ -197,7 +198,7 @@ const HadithDetailsModal: FC<Props> = ({
                   </span>
                 ))}
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Button section */}
@@ -220,7 +221,7 @@ const HadithDetailsModal: FC<Props> = ({
             }`}
             onClick={() => {
               if (!isCopied) {
-                copyHadithText(selectedHadith.translation);
+                copyHadithText(selectedHadith.meaning);
               }
             }}
           >

@@ -1,4 +1,5 @@
-import { Bookmark, DisplayLanguage, Hadith } from "@src/store";
+import { Bookmark, DisplayLanguage } from "@src/store";
+import { Hadith } from "@src/utils/queries/usePostAllHadith";
 import startCase from "lodash/startCase";
 import { FC } from "react";
 
@@ -45,11 +46,10 @@ const HadithCard: FC<Props> = ({
           </button>
           <div className="max-w-full">
             <h3 className="font-medium text-sm sm:text-base line-clamp-2">
-              {startCase(hadith.chapter.toLowerCase())}
+              {startCase(hadith.title.toLowerCase())}
             </h3>
             <p className="text-xs sm:text-sm text-gray-500 truncate max-w-full text-wrap">
-              {hadith.collection} • {hadith.narrator} • {hadith.book} #
-              {hadith.number}
+              {hadith.collection} • {hadith.book} #{hadith.number}
             </p>
           </div>
         </div>
@@ -60,18 +60,22 @@ const HadithCard: FC<Props> = ({
       <div className="space-y-2 sm:space-y-3 p-1.5 lg:p-0">
         {(displayLanguage === "malay" || displayLanguage === "both") && (
           <p className="text-sm sm:text-base text-gray-700 leading-relaxed line-clamp-4 sm:line-clamp-3 text-justify">
-            {hadith.translation}
+            {hadith.meaning}
           </p>
         )}
 
-        {/* {(displayLanguage === "arabic" || displayLanguage === "both") && (
-      <p dir="rtl" className="text-sm sm:text-base text-gray-700 leading-relaxed line-clamp-3" lang="ar">
-        {hadith.arabicText}
-      </p>
-    )} */}
+        {(displayLanguage === "arabic" || displayLanguage === "both") && (
+          <p
+            dir="rtl"
+            className="text-sm sm:text-base text-gray-700 leading-relaxed line-clamp-3"
+            lang="ar"
+          >
+            {hadith.arabic_text}
+          </p>
+        )}
       </div>
 
-      <div className="flex flex-wrap mt-3 sm:mt-4 gap-1">
+      {/* <div className="flex flex-wrap mt-3 sm:mt-4 gap-1">
         {hadith.topics &&
           hadith.topics.slice(0, 3).map((topic) => (
             <span
@@ -86,7 +90,7 @@ const HadithCard: FC<Props> = ({
             +{hadith.topics.length - 3}
           </span>
         )}
-      </div>
+      </div> */}
     </div>
   );
 };

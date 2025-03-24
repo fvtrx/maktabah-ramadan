@@ -24,9 +24,6 @@ const FilterHadithSidebar = ({
     selectedBook,
     setSelectedBook,
     bookOptions,
-    selectedNarrator,
-    setSelectedNarrator,
-    narrators,
     resetFilters,
     filteredHadiths,
   } = useHadithStore();
@@ -86,12 +83,12 @@ const FilterHadithSidebar = ({
         />
 
         {/* Narrator filter */}
-        <Dropdown
+        {/* <Dropdown
           type="narrators"
           selectedOptions={narrators}
           selectedItem={selectedNarrator}
           setSelectedItem={setSelectedNarrator}
-        />
+        /> */}
       </div>
 
       {/* Reset filters button */}
