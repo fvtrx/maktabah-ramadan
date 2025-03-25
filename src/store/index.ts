@@ -19,7 +19,7 @@ interface HadithState {
   collections: string[];
   books: string[];
   bookOptions: string[];
-  narrators: string[];
+
   bookmarks: (Bookmark | { id: number; hadithId: number; dateAdded: string })[];
 
   // UI state
@@ -31,7 +31,7 @@ interface HadithState {
   searchTerm: string;
   selectedCollection: string;
   selectedBook: string;
-  selectedNarrator: string;
+
   selectedGrade: string;
   isSidebarOpen: boolean;
 
@@ -43,21 +43,21 @@ interface HadithState {
   setCollections: (collections: string[]) => void;
   setBooks: (books: string[]) => void;
   setBookOptions: (bookOptions: string[]) => void;
-  setNarrators: (narrators: string[]) => void;
+
   addBookmark: (bookmark: Bookmark) => void;
   removeBookmark: (id: number) => void;
   setBookmarks: (
     bookmarks: (
       | Bookmark
       | { id: number; hadithId: number; dateAdded: string }
-    )[],
+    )[]
   ) => void;
   setShowBookmarks: (show: boolean) => void;
   setDisplayLanguage: (language: DisplayLanguage) => void;
   setSearchTerm: (term: string) => void;
   setSelectedCollection: (collection: string) => void;
   setSelectedBook: (book: string) => void;
-  setSelectedNarrator: (narrator: string) => void;
+
   setSelectedGrade: (grade: string) => void;
   toggleSidebar: () => void;
 
@@ -74,7 +74,6 @@ export const useHadithStore = create<HadithState>((set) => ({
   collections: [],
   books: [],
   bookOptions: [],
-  narrators: [],
   bookmarks: [],
   showBookmarks: false,
   displayLanguage: "both",
@@ -95,7 +94,7 @@ export const useHadithStore = create<HadithState>((set) => ({
   setCollections: (collections) => set({ collections }),
   setBooks: (books) => set({ books }),
   setBookOptions: (bookOptions) => set({ bookOptions }),
-  setNarrators: (narrators) => set({ narrators }),
+
   addBookmark: (bookmark) =>
     set((state) => ({
       bookmarks: [...state.bookmarks, bookmark],
@@ -117,7 +116,6 @@ export const useHadithStore = create<HadithState>((set) => ({
       selectedBook: "all",
     }),
   setSelectedBook: (selectedBook) => set({ selectedBook }),
-  setSelectedNarrator: (selectedNarrator) => set({ selectedNarrator }),
   setSelectedGrade: (selectedGrade) => set({ selectedGrade }),
   toggleSidebar: () =>
     set((state) => ({
@@ -130,7 +128,6 @@ export const useHadithStore = create<HadithState>((set) => ({
       searchTerm: "",
       selectedCollection: "all",
       selectedBook: "all",
-      selectedNarrator: "all",
       selectedGrade: "all",
       showBookmarks: false,
     }),

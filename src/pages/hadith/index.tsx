@@ -32,7 +32,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     showBookmarks,
     searchTerm,
     isSidebarOpen,
-    selectedNarrator,
+
     bookmarks,
     selectedGrade,
 
@@ -57,7 +57,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   const { loadSavedBookmarks, toggleBookmark } = useBookmarkManager();
   const { openHadithDetails, closeHadithDetails } = useHadithNavigation(
     hadiths,
-    initialHadithId,
+    initialHadithId
   );
 
   const {
@@ -74,7 +74,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   const loadMoreRef = useInfiniteScroll(fetchNextPage);
 
   const hadithList: Hadith[] | undefined = data?.pages.flatMap(
-    (page) => page.data,
+    (page) => page.data
   );
 
   useEffect(() => {
@@ -123,7 +123,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
               hadiths
                 .filter((h) => h.collection === selectedCollection)
                 .map((h) => h?.book)
-                .filter(Boolean),
+                .filter(Boolean)
             ),
           ];
 
@@ -139,13 +139,13 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
 
       if (showBookmarks) {
         results = results.filter((hadith) =>
-          bookmarks.some((bookmark) => bookmark.id === hadith.id),
+          bookmarks.some((bookmark) => bookmark.id === hadith.id)
         );
       }
 
       if (selectedCollection !== FILTER_ALL) {
         results = results.filter(
-          (hadith) => hadith.collection === selectedCollection,
+          (hadith) => hadith.collection === selectedCollection
         );
       }
 
@@ -161,7 +161,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
             hadith.arabic_text?.toLowerCase().includes(term) ||
             hadith.book?.toLowerCase().includes(term) ||
             hadith.number?.includes(term) ||
-            hadith.title?.toLowerCase().includes(term),
+            hadith.title?.toLowerCase().includes(term)
         );
       }
 
@@ -179,7 +179,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     searchTerm,
     selectedCollection,
     selectedBook,
-    selectedNarrator,
+
     selectedGrade,
     bookmarks,
     showBookmarks,
