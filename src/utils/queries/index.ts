@@ -10,7 +10,7 @@ export const maktabahRamadanBaseUrl = axios.create({
     accept: "application/json",
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
-    ["X-Access-Token"]: process.env.NEXT_PUBLIC_API_KEY,
+    ["X-Access-Token"]: process.env.SECRET_API_KEY,
   },
 });
 
