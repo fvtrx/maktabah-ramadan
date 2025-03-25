@@ -1,18 +1,14 @@
 import { useHadithStore } from "@src/store";
+import { debounce } from "lodash";
+import { useCallback } from "react";
 import Dropdown from "./Dropdown";
 import Search from "./Search";
 
 type Props = {
   isSidebarOpen: boolean;
-  searchTerm: string;
-  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-const FilterHadithSidebar = ({
-  isSidebarOpen,
-  searchTerm,
-  handleSearchChange,
-}: Props) => {
+const FilterHadithSidebar = ({ isSidebarOpen }: Props) => {
   const {
     showBookmarks,
     setShowBookmarks,
@@ -26,13 +22,29 @@ const FilterHadithSidebar = ({
     bookOptions,
     resetFilters,
     filteredHadiths,
+    searchTerm,
+    setSearchTerm,
   } = useHadithStore();
+
+  const debouncedSetQuery = useCallback(
+    debounce((query: string) => {
+      setSearchTerm(query);
+    }, 500),
+    []
+  );
+
+  const handleQuery: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    event.preventDefault();
+    const query = event.currentTarget.value;
+    // debounce the setQuery to avoid too many requests
+    debouncedSetQuery(query);
+  };
 
   if (!isSidebarOpen) return null;
 
   return (
     <div className={`sidebar ${isSidebarOpen ? "open" : ""} shadow-md`}>
-      <Search searchTerm={searchTerm} handleSearchChange={handleSearchChange} />
+      <Search searchTerm={searchTerm} handleSearchChange={handleQuery} />
 
       {/* Bookmarks filter */}
       <div className="mb-6">

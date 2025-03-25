@@ -2,12 +2,14 @@ import Layout from "@src/components/common/Layout";
 import FilterHadithSidebar from "@src/components/FilterHadithSidebar";
 import HadithCard from "@src/components/HadithCard";
 import HadithDetailsModal from "@src/components/HadithDetailsModal";
+import LoadingIcon from "@src/components/icons/LoadingIcon";
 import LanguageSelector from "@src/components/LanguageSelector";
 import { Bookmark, useHadithStore } from "@src/store";
 import { copyHadithText } from "@src/utils/helpers/string";
 import useInfiniteScroll from "@src/utils/hooks/useInfiniteScroll";
 import useToast from "@src/utils/hooks/useToast";
 import usePostAllHadith, { Hadith } from "@src/utils/queries/usePostAllHadith";
+import router from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 
@@ -33,14 +35,11 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     setHadiths,
     setFilteredHadiths,
     setSelectedHadith,
-
     setCollections,
     setBookOptions,
-    setNarrators,
     setBookmarks,
     setBooks,
     setSelectedBook,
-    setSearchTerm,
     setDisplayLanguage,
     resetFilters,
     toggleSidebar,
@@ -71,7 +70,6 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   );
 
   useEffect(() => {
-    // Only run once on initial render for mobile devices
     if (initialRenderRef.current && isMobile && isSidebarOpen) {
       toggleSidebar();
       initialRenderRef.current = false;
@@ -81,29 +79,24 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   // Initialize hadiths data
   useEffect(() => {
     if (hadithList) {
-      // Initialize state with mock data
       setHadiths(hadithList);
       setFilteredHadiths(hadithList);
 
-      // Extract unique metadata for filters
       const uniqueCollections = [
         ...new Set(hadithList.map((h) => h.collection)),
       ];
       const uniqueBooks = [...new Set(hadithList.map((h) => h.book))];
       // const uniqueNarrators = [...new Set(hadithList.map((h) => h.narrator))];
 
-      // Set filter options
       setCollections(uniqueCollections);
       setBooks(uniqueBooks);
       setBookOptions(uniqueBooks);
       // setNarrators(uniqueNarrators);
 
-      // Load saved bookmarks from localStorage
       loadSavedBookmarks();
     }
-  }, []);
+  }, [hadithList]);
 
-  // Load bookmarks from localStorage
   const loadSavedBookmarks = () => {
     const savedBookmarks = localStorage.getItem("hadithBookmarks");
     if (savedBookmarks) {
@@ -111,7 +104,6 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     }
   };
 
-  // Update book options when collection changes
   useEffect(() => {
     if (!hadiths.length) return;
 
@@ -130,11 +122,9 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     setSelectedBook("all");
   }, [selectedCollection, hadiths, books]);
 
-  // Apply filters and search
   useEffect(() => {
     if (!hadiths.length) return;
 
-    // Filter by bookmarks, collection, book, and narrator
     let results = [...hadiths];
 
     if (showBookmarks) {
@@ -159,7 +149,6 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     //   );
     // }
 
-    // Apply search term if present
     if (searchTerm.trim() !== "") {
       const term = searchTerm.toLowerCase();
       results = results.filter(
@@ -227,7 +216,6 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     updateBookmarks([...bookmarks, newBookmark], "Hadith bookmarked!");
   };
 
-  // Initialize with URL hadith ID if present
   useEffect(() => {
     if (initialHadithId && hadiths.length > 0) {
       const id = parseInt(initialHadithId, 10);
@@ -240,7 +228,6 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     }
   }, [initialHadithId, hadiths]);
 
-  // Hadith navigation handlers
   const openHadithDetails = (hadith: Hadith) => {
     setSelectedHadith(hadith);
     setViewingHadithId(hadith.id);
@@ -267,7 +254,6 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     }
   };
 
-  // Handle browser navigation
   useEffect(() => {
     const handlePopState = () => {
       const matches = window.location.pathname.match(/\/hadith\/(\d+)/);
@@ -290,6 +276,14 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, [hadiths, viewingHadithId]);
+
+  useEffect(() => {
+    refetch();
+  }, [searchTerm]);
+
+  if (isError) {
+    router.replace("/something-wrong");
+  }
 
   return (
     <Layout
@@ -324,22 +318,33 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
         </header>
 
         <main className="flex flex-1 overflow-hidden">
-          <FilterHadithSidebar
-            isSidebarOpen={isSidebarOpen}
-            searchTerm={searchTerm}
-            handleSearchChange={(e) => {
-              setSearchTerm(e.target.value);
-            }}
-          />
+          <FilterHadithSidebar isSidebarOpen={isSidebarOpen} />
 
-          <div className="flex-1 p-3 sm:p-6 overflow-y-auto">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <p>Loading...</p>
-              </div>
-            ) : filteredHadiths.length > 0 ? (
+          {!data && isLoading ? (
+            <section className="flex w-full items-center justify-center gap-2 py-8">
+              <LoadingIcon className="mx-2 my-8 text-violet-500" /> Loading...
+            </section>
+          ) : (
+            <div className="flex-1 p-3 sm:p-6 overflow-y-auto items-center justify-center">
+              {filteredHadiths.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                  <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
+                    No hadith found matching your search criteria.
+                  </p>
+                  <button
+                    className="text-xs sm:text-sm text-gray-500 border p-1.5 sm:p-2 rounded-sm relative overflow-hidden group hover:cursor-pointer"
+                    onClick={resetFilters}
+                  >
+                    <span className="relative z-10 transition-colors duration-150 group-hover:text-white">
+                      Clear filters
+                    </span>
+                    <span className="absolute inset-0 bg-black/80 transform scale-x-0 origin-left transition-transform duration-150 ease-in-out group-hover:scale-x-100"></span>
+                  </button>
+                </div>
+              )}
+
               <div className="space-y-3 sm:space-y-6">
-                {filteredHadiths.map((hadith) => (
+                {filteredHadiths?.map((hadith) => (
                   <HadithCard
                     key={hadith.id}
                     hadith={hadith}
@@ -350,23 +355,17 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
                   />
                 ))}
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
-                  No hadith found matching your search criteria.
-                </p>
-                <button
-                  className="text-xs sm:text-sm text-gray-500 border p-1.5 sm:p-2 rounded-sm relative overflow-hidden group hover:cursor-pointer"
-                  onClick={resetFilters}
-                >
-                  <span className="relative z-10 transition-colors duration-150 group-hover:text-white">
-                    Clear filters
-                  </span>
-                  <span className="absolute inset-0 bg-black/80 transform scale-x-0 origin-left transition-transform duration-150 ease-in-out group-hover:scale-x-100"></span>
-                </button>
+
+              <div
+                className="flex items-center justify-center"
+                ref={loadMoreRef}
+              >
+                {isFetchingNextPage && (
+                  <LoadingIcon className="mt-4 text-decubeBlue" />
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </main>
 
         {/* Hadith detail modal */}
