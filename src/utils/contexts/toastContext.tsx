@@ -52,7 +52,7 @@ export const ToastProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
   const close = useCallback((id: number) => {
     setToasts((currentToasts) =>
-      currentToasts.filter((toast) => toast.id !== id)
+      currentToasts.filter((toast) => toast.id !== id),
     );
   }, []);
 
@@ -80,7 +80,7 @@ export const ToastProvider: React.FC<PropsWithChildren> = ({ children }) => {
                 />
               ))}
             </div>,
-            toastElement
+            toastElement,
           )
         : null}
     </ToastContext.Provider>

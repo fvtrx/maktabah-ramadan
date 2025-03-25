@@ -1,41 +1,62 @@
 import { useHadithStore } from "@src/store";
+import { debounce } from "lodash";
+import { useCallback, useEffect, useState } from "react";
 import Dropdown from "./Dropdown";
 import Search from "./Search";
 
 type Props = {
   isSidebarOpen: boolean;
-  searchTerm: string;
-  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-const FilterHadithSidebar = ({
-  isSidebarOpen,
-  searchTerm,
-  handleSearchChange,
-}: Props) => {
+const FilterHadithSidebar = ({ isSidebarOpen }: Props) => {
   const {
     showBookmarks,
     setShowBookmarks,
     selectedCollection,
     setSelectedCollection,
     collections,
-    advancedFiltersOpen,
-    toggleAdvancedFilters,
     selectedBook,
     setSelectedBook,
     bookOptions,
-    selectedNarrator,
-    setSelectedNarrator,
-    narrators,
     resetFilters,
     filteredHadiths,
+    searchTerm,
+    setSearchTerm,
   } = useHadithStore();
+
+  const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+
+  useEffect(() => {
+    setLocalSearchTerm(searchTerm);
+  }, [searchTerm]);
+
+  const debouncedSetQuery = useCallback(
+    debounce((query: string) => {
+      setSearchTerm(query);
+    }, 500),
+    [setSearchTerm],
+  );
+
+  const handleQuery: React.ChangeEventHandler<HTMLInputElement> = (event) => {
+    event.preventDefault();
+    const query = event.currentTarget.value;
+
+    setLocalSearchTerm(query);
+
+    debouncedSetQuery(query);
+  };
+
+  useEffect(() => {
+    return () => {
+      debouncedSetQuery.cancel();
+    };
+  }, [debouncedSetQuery]);
 
   if (!isSidebarOpen) return null;
 
   return (
     <div className={`sidebar ${isSidebarOpen ? "open" : ""} shadow-md`}>
-      <Search searchTerm={searchTerm} handleSearchChange={handleSearchChange} />
+      <Search searchTerm={localSearchTerm} handleSearchChange={handleQuery} />
 
       {/* Bookmarks filter */}
       <div className="mb-6">
@@ -60,44 +81,20 @@ const FilterHadithSidebar = ({
         setSelectedItem={setSelectedCollection}
       />
 
-      {/* Advanced filters toggle */}
-      <button
-        className="flex items-center justify-between w-full mb-6 text-sm text-gray-500"
-        onClick={toggleAdvancedFilters}
-      >
-        <span>Advanced Filters</span>
-        <span>{advancedFiltersOpen ? "−" : "+"}</span>
-      </button>
-
-      {/* Advanced filters */}
-      <div
-        className={`space-y-4 mb-6 transition-all duration-300 ease-in-out ${
-          advancedFiltersOpen
-            ? "max-h-96 opacity-100"
-            : "max-h-0 opacity-0 overflow-hidden"
-        }`}
-      >
-        {/* Book filter */}
-        <Dropdown
-          type="books"
-          selectedOptions={bookOptions}
-          selectedItem={selectedBook}
-          setSelectedItem={setSelectedBook}
-        />
-
-        {/* Narrator filter */}
-        <Dropdown
-          type="narrators"
-          selectedOptions={narrators}
-          selectedItem={selectedNarrator}
-          setSelectedItem={setSelectedNarrator}
-        />
-      </div>
+      <Dropdown
+        type="books"
+        selectedOptions={bookOptions}
+        selectedItem={selectedBook}
+        setSelectedItem={setSelectedBook}
+      />
 
       {/* Reset filters button */}
       <button
         className="w-full py-3 text-sm text-gray-500 hover:text-gray-700"
-        onClick={resetFilters}
+        onClick={() => {
+          resetFilters();
+          setLocalSearchTerm("");
+        }}
       >
         Reset filters
       </button>

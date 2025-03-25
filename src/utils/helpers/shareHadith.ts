@@ -9,13 +9,13 @@ declare global {
         logging: boolean;
         allowTaint: boolean;
         onclone: (event: Document) => void;
-      }
+      },
     ) => Promise<HTMLCanvasElement>;
   }
 }
 
 export const directDownload = async (
-  modalRef: React.RefObject<HTMLDivElement | null>
+  modalRef: React.RefObject<HTMLDivElement | null>,
 ): Promise<void> => {
   if (!modalRef.current) return;
 
@@ -31,7 +31,7 @@ export const directDownload = async (
   const setCssPropertyValue = (
     element: HTMLElement,
     prop: string,
-    value: string
+    value: string,
   ): void => {
     element.style.setProperty(prop, value);
   };
@@ -74,11 +74,11 @@ export const directDownload = async (
   try {
     // Find elements to temporarily hide or modify
     const buttonSection = modalRef.current.querySelector(
-      '[class*="px-6 pt-4 border-t"], [class*="px-3 sm:px-6 pt-3 sm:pt-4 border-t"]'
+      '[class*="px-6 pt-4 border-t"], [class*="px-3 sm:px-6 pt-3 sm:pt-4 border-t"]',
     ) as HTMLElement | null;
 
     const bookmarkButton = modalRef.current.querySelector(
-      ".text-lg.text-gray-400.hover\\:text-yellow-500, .text-lg.sm\\:text-lg.text-gray-400.hover\\:text-yellow-500"
+      ".text-lg.text-gray-400.hover\\:text-yellow-500, .text-lg.sm\\:text-lg.text-gray-400.hover\\:text-yellow-500",
     ) as HTMLElement | null;
 
     // Add close button
@@ -94,12 +94,12 @@ export const directDownload = async (
 
     // Find keywords section to hide
     const keywordsSection = modalRef.current.querySelector(
-      ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center"
+      ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center",
     ) as HTMLElement | null;
 
     // Find the scrollable content div
     const scrollableDiv = modalRef.current.querySelector(
-      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\], .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto.max-h-\\[60vh\\].sm\\:max-h-\\[70vh\\]"
+      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\], .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto.max-h-\\[60vh\\].sm\\:max-h-\\[70vh\\]",
     ) as HTMLElement | null;
 
     // Save original styles before modifying them
@@ -189,12 +189,12 @@ export const directDownload = async (
 
     // Extract the main content area from the clone
     const mainContent = contentClone.querySelector(
-      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto, .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto"
+      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto, .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto",
     );
     if (mainContent) {
       // Extract the title from the header section
       const headerArea = contentClone.querySelector(
-        ".flex.justify-between.items-center.p-6, .flex.justify-between.items-center.p-3.sm\\:p-6"
+        ".flex.justify-between.items-center.p-6, .flex.justify-between.items-center.p-3.sm\\:p-6",
       );
       const titleElement = headerArea?.querySelector("h2") || null;
 
@@ -210,7 +210,7 @@ export const directDownload = async (
 
         // Add the source if available
         const sourceElement = headerArea?.querySelector(
-          ".text-sm.text-gray-400, .text-xs.sm\\:text-sm.text-gray-400"
+          ".text-sm.text-gray-400, .text-xs.sm\\:text-sm.text-gray-400",
         );
         if (sourceElement) {
           const sourceText = document.createElement("p");
@@ -231,7 +231,7 @@ export const directDownload = async (
 
       // Remove any buttons or UI elements
       const buttonsToRemove = mainContent.querySelectorAll(
-        "button, [role='button']"
+        "button, [role='button']",
       );
       buttonsToRemove.forEach((button) => {
         if (button.parentNode) {
@@ -241,7 +241,7 @@ export const directDownload = async (
 
       // Hide keywords section in the clone
       const keywordsToHide = mainContent.querySelector(
-        ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center"
+        ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center",
       );
       if (keywordsToHide && keywordsToHide.parentNode) {
         keywordsToHide.parentNode.removeChild(keywordsToHide);
@@ -470,7 +470,7 @@ export const directDownload = async (
           });
         } else {
           alert(
-            "Web Share API is not supported in your browser. Please use the download button instead."
+            "Web Share API is not supported in your browser. Please use the download button instead.",
           );
         }
       } catch (error) {
@@ -508,7 +508,7 @@ export const directDownload = async (
     if (
       !!navigator.share ||
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
+        navigator.userAgent,
       )
     ) {
       modalFooter.appendChild(shareBtn);

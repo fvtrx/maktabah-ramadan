@@ -6,7 +6,7 @@ type Props = {
 
 export const copyHadithText = async (
   callback: (val: boolean) => void,
-  { text }: Props
+  { text }: Props,
 ) => {
   let copyText = "";
 
