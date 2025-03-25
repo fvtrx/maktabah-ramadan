@@ -343,18 +343,20 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
                 </div>
               )}
 
-              <div className="space-y-3 sm:space-y-6">
-                {filteredHadiths?.map((hadith) => (
-                  <HadithCard
-                    key={hadith.id}
-                    hadith={hadith}
-                    viewHadithDetails={openHadithDetails}
-                    displayLanguage={displayLanguage}
-                    bookmarks={bookmarks}
-                    toggleBookmark={toggleBookmark}
-                  />
-                ))}
-              </div>
+              {filteredHadiths.length > 0 && (
+                <div className="space-y-3 sm:space-y-6">
+                  {filteredHadiths?.map((hadith) => (
+                    <HadithCard
+                      key={hadith.id}
+                      hadith={hadith}
+                      viewHadithDetails={openHadithDetails}
+                      displayLanguage={displayLanguage}
+                      bookmarks={bookmarks}
+                      toggleBookmark={toggleBookmark}
+                    />
+                  ))}
+                </div>
+              )}
 
               <div
                 className="flex items-center justify-center"
