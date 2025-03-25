@@ -1,4 +1,4 @@
-import { Hadith } from "@src/utils/queries/usePostAllHadith";
+import { Hadith } from "@src/utils/queries/useGetAllHadith";
 import { create } from "zustand";
 
 // Type definitions
@@ -8,7 +8,7 @@ export type HadithGrade = "sahih" | "hasan" | "hasan_sahih" | "daif";
 export interface Bookmark {
   id: number;
   hadithId: string;
-  dateAdded: Date;
+  dateAdded: Date | string;
   notes?: string;
 }
 
@@ -33,7 +33,6 @@ interface HadithState {
   selectedBook: string;
   selectedNarrator: string;
   selectedGrade: string;
-  advancedFiltersOpen: boolean;
   isSidebarOpen: boolean;
 
   // Actions
@@ -51,7 +50,7 @@ interface HadithState {
     bookmarks: (
       | Bookmark
       | { id: number; hadithId: number; dateAdded: string }
-    )[]
+    )[],
   ) => void;
   setShowBookmarks: (show: boolean) => void;
   setDisplayLanguage: (language: DisplayLanguage) => void;
@@ -60,15 +59,13 @@ interface HadithState {
   setSelectedBook: (book: string) => void;
   setSelectedNarrator: (narrator: string) => void;
   setSelectedGrade: (grade: string) => void;
-  toggleAdvancedFilters: () => void;
   toggleSidebar: () => void;
 
   // Additional actions for convenience
   resetFilters: () => void;
-  updateFilteredHadiths: () => void;
 }
 
-export const useHadithStore = create<HadithState>((set, get) => ({
+export const useHadithStore = create<HadithState>((set) => ({
   // Initial state
   hadiths: [],
   filteredHadiths: [],
@@ -122,10 +119,6 @@ export const useHadithStore = create<HadithState>((set, get) => ({
   setSelectedBook: (selectedBook) => set({ selectedBook }),
   setSelectedNarrator: (selectedNarrator) => set({ selectedNarrator }),
   setSelectedGrade: (selectedGrade) => set({ selectedGrade }),
-  toggleAdvancedFilters: () =>
-    set((state) => ({
-      advancedFiltersOpen: !state.advancedFiltersOpen,
-    })),
   toggleSidebar: () =>
     set((state) => ({
       isSidebarOpen: !state.isSidebarOpen,
@@ -141,44 +134,4 @@ export const useHadithStore = create<HadithState>((set, get) => ({
       selectedGrade: "all",
       showBookmarks: false,
     }),
-
-  // Logic to filter hadiths based on current filters
-  updateFilteredHadiths: () => {
-    const {
-      hadiths,
-      searchTerm,
-      selectedCollection,
-      selectedBook,
-      selectedNarrator,
-    } = get();
-
-    let filtered = [...hadiths];
-
-    // Apply collection filter
-    if (selectedCollection !== "all") {
-      filtered = filtered.filter((h) => h.collection === selectedCollection);
-    }
-
-    // Apply book filter
-    if (selectedBook !== "all") {
-      filtered = filtered.filter((h) => h.book === selectedBook);
-    }
-
-    // Apply narrator filter
-    // if (selectedNarrator !== "all") {
-    //   filtered = filtered.filter((h) => h.narrator === selectedNarrator);
-    // }
-
-    // Apply search term filter
-    if (searchTerm.trim() !== "") {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (h) =>
-          h.meaning.toLowerCase().includes(term) ||
-          h.meaning.toLowerCase().includes(term)
-      );
-    }
-
-    set({ filteredHadiths: filtered });
-  },
 }));

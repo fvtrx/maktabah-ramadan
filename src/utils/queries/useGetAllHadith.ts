@@ -28,14 +28,14 @@ export interface Hadith {
 
 const useGetAllHadith = (
   params: Params,
-  options?: UseInfiniteQueryOptions<AxiosResponse<Hadith[]>, AxiosError>
+  options?: UseInfiniteQueryOptions<AxiosResponse<Hadith[]>, AxiosError>,
 ) => {
   const toast = useToast();
   const { pagination_number, ...restParams } = params;
 
   return useInfiniteQuery<AxiosResponse<Hadith[]>, AxiosError>(
     [ALL_HADITH_PATH, params],
-    (_params) => {
+    () => {
       return maktabahRamadanBaseUrl.post(ALL_HADITH_PATH, {
         pagination_number: pagination_number ?? COUNT_PER_PAGE,
         ...restParams,
@@ -60,7 +60,7 @@ const useGetAllHadith = (
         }
       },
       ...options,
-    }
+    },
   );
 };
 

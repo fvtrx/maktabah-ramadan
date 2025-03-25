@@ -1,6 +1,6 @@
 import { Bookmark, DisplayLanguage } from "@src/store";
 import { directDownload } from "@src/utils/helpers/shareHadith"; // Import the screenshot function
-import { Hadith } from "@src/utils/queries/usePostAllHadith";
+import { Hadith } from "@src/utils/queries/useGetAllHadith";
 import startCase from "lodash/startCase";
 import { DownloadIcon } from "lucide-react";
 import React, { FC, useEffect, useRef, useState } from "react";
@@ -11,7 +11,7 @@ type Props = {
   closeHadithDetails: () => void;
   toggleBookmark: (
     id: number,
-    event: React.MouseEvent<HTMLButtonElement>
+    event: React.MouseEvent<HTMLButtonElement>,
   ) => void;
   displayLanguage: DisplayLanguage;
   copyHadithText: (text: string) => void;
@@ -81,7 +81,8 @@ const HadithDetailsModal: FC<Props> = ({
               {startCase(selectedHadith.title.toLowerCase())}
             </h2>
             <p className="text-xs sm:text-sm text-gray-400 text-wrap line-clamp-2">
-              {selectedHadith.source}
+              {selectedHadith.collection} • {selectedHadith.book} #
+              {selectedHadith.number}
             </p>
           </div>
 
@@ -129,7 +130,7 @@ const HadithDetailsModal: FC<Props> = ({
                 }}
               >
                 <h3 className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
-                  Ayat Hadis (Arabic)
+                  Ayat Hadis
                 </h3>
                 <p
                   dir="rtl"

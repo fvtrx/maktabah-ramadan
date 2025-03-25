@@ -4,14 +4,19 @@ import HadithCard from "@src/components/HadithCard";
 import HadithDetailsModal from "@src/components/HadithDetailsModal";
 import LoadingIcon from "@src/components/icons/LoadingIcon";
 import LanguageSelector from "@src/components/LanguageSelector";
-import { Bookmark, useHadithStore } from "@src/store";
+import { useHadithStore } from "@src/store";
 import { copyHadithText } from "@src/utils/helpers/string";
+import useBookmarkManager from "@src/utils/hooks/useBookmarkManager";
+import useHadithNavigation from "@src/utils/hooks/useHadithNavigation";
 import useInfiniteScroll from "@src/utils/hooks/useInfiniteScroll";
 import useToast from "@src/utils/hooks/useToast";
-import usePostAllHadith, { Hadith } from "@src/utils/queries/usePostAllHadith";
+import useGetAllHadith, { Hadith } from "@src/utils/queries/useGetAllHadith";
 import router from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
+
+const FILTER_ALL = "all";
+const PAGINATION_SIZE = 25;
 
 const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   initialHadithId,
@@ -31,13 +36,10 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     bookmarks,
     selectedGrade,
 
-    // Actions - group related actions together
     setHadiths,
     setFilteredHadiths,
-    setSelectedHadith,
     setCollections,
     setBookOptions,
-    setBookmarks,
     setBooks,
     setSelectedBook,
     setDisplayLanguage,
@@ -45,12 +47,18 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     toggleSidebar,
   } = useHadithStore();
 
+  const hadithsSetRef = useRef(false);
+  const filterAppliedRef = useRef(false);
+
   const toast = useToast();
-  const [viewingHadithId, setViewingHadithId] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
 
-  const initialRenderRef = useRef<boolean>(true);
+  const { loadSavedBookmarks, toggleBookmark } = useBookmarkManager();
+  const { openHadithDetails, closeHadithDetails } = useHadithNavigation(
+    hadiths,
+    initialHadithId,
+  );
 
   const {
     data,
@@ -59,110 +67,113 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     isFetchingNextPage,
     isLoading,
     refetch,
-  } = usePostAllHadith({
-    pagination_number: 25,
+  } = useGetAllHadith({
+    pagination_number: PAGINATION_SIZE,
   });
 
   const loadMoreRef = useInfiniteScroll(fetchNextPage);
 
   const hadithList: Hadith[] | undefined = data?.pages.flatMap(
-    (page) => page.data.data
+    (page) => page.data,
   );
 
   useEffect(() => {
-    if (initialRenderRef.current && isMobile && isSidebarOpen) {
+    if (isMobile && isSidebarOpen) {
       toggleSidebar();
-      initialRenderRef.current = false;
     }
-  }, [isMobile]);
+  }, [isMobile, isSidebarOpen, toggleSidebar]);
 
-  // Initialize hadiths data
+  // Process initial data from API
   useEffect(() => {
-    if (hadithList) {
+    if (hadithList && hadithList.length > 0 && !hadithsSetRef.current) {
+      hadithsSetRef.current = true;
+
       setHadiths(hadithList);
-      setFilteredHadiths(hadithList);
 
       const uniqueCollections = [
-        ...new Set(hadithList.map((h) => h.collection)),
+        ...new Set(hadithList.map((h) => h?.collection).filter(Boolean)),
       ];
-      const uniqueBooks = [...new Set(hadithList.map((h) => h.book))];
-      // const uniqueNarrators = [...new Set(hadithList.map((h) => h.narrator))];
+      const uniqueBooks = [
+        ...new Set(hadithList.map((h) => h?.book).filter(Boolean)),
+      ];
 
       setCollections(uniqueCollections);
       setBooks(uniqueBooks);
       setBookOptions(uniqueBooks);
-      // setNarrators(uniqueNarrators);
 
       loadSavedBookmarks();
     }
-  }, [hadithList]);
-
-  const loadSavedBookmarks = () => {
-    const savedBookmarks = localStorage.getItem("hadithBookmarks");
-    if (savedBookmarks) {
-      setBookmarks(JSON.parse(savedBookmarks));
-    }
-  };
+  }, [
+    hadithList,
+    setHadiths,
+    setCollections,
+    setBooks,
+    setBookOptions,
+    loadSavedBookmarks,
+  ]);
 
   useEffect(() => {
     if (!hadiths.length) return;
 
     const newBookOptions =
-      selectedCollection === "all"
+      selectedCollection === FILTER_ALL
         ? books
         : [
             ...new Set(
               hadiths
                 .filter((h) => h.collection === selectedCollection)
-                .map((h) => h.book)
+                .map((h) => h?.book)
+                .filter(Boolean),
             ),
           ];
 
     setBookOptions(newBookOptions);
-    setSelectedBook("all");
-  }, [selectedCollection, hadiths, books]);
+    setSelectedBook(FILTER_ALL);
+  }, [selectedCollection, hadiths, books, setBookOptions, setSelectedBook]);
 
   useEffect(() => {
     if (!hadiths.length) return;
 
-    let results = [...hadiths];
+    const applyFilters = () => {
+      let results = [...hadiths];
 
-    if (showBookmarks) {
-      results = results.filter((hadith) =>
-        bookmarks.some((bookmark) => bookmark.id === hadith.id)
-      );
-    }
+      if (showBookmarks) {
+        results = results.filter((hadith) =>
+          bookmarks.some((bookmark) => bookmark.id === hadith.id),
+        );
+      }
 
-    if (selectedCollection !== "all") {
-      results = results.filter(
-        (hadith) => hadith.collection === selectedCollection
-      );
-    }
+      if (selectedCollection !== FILTER_ALL) {
+        results = results.filter(
+          (hadith) => hadith.collection === selectedCollection,
+        );
+      }
 
-    if (selectedBook !== "all") {
-      results = results.filter((hadith) => hadith.book === selectedBook);
-    }
+      if (selectedBook !== FILTER_ALL) {
+        results = results.filter((hadith) => hadith.book === selectedBook);
+      }
 
-    // if (selectedNarrator !== "all") {
-    //   results = results.filter(
-    //     (hadith) => hadith.narrator === selectedNarrator
-    //   );
-    // }
+      if (searchTerm.trim() !== "") {
+        const term = searchTerm.toLowerCase();
+        results = results.filter(
+          (hadith) =>
+            hadith.meaning?.toLowerCase().includes(term) ||
+            hadith.arabic_text?.toLowerCase().includes(term) ||
+            hadith.book?.toLowerCase().includes(term) ||
+            hadith.number?.includes(term) ||
+            hadith.title?.toLowerCase().includes(term),
+        );
+      }
 
-    if (searchTerm.trim() !== "") {
-      const term = searchTerm.toLowerCase();
-      results = results.filter(
-        (hadith) =>
-          hadith.meaning?.toLowerCase().includes(term) ||
-          hadith.arabic_text?.toLowerCase().includes(term) ||
-          // hadith.narrator?.toLowerCase().includes(term) ||
-          hadith.book?.toLowerCase().includes(term) ||
-          hadith.number?.includes(term) ||
-          hadith.title?.toLowerCase().includes(term)
-      );
-    }
+      filterAppliedRef.current = true;
+      setFilteredHadiths(results);
+    };
 
-    setFilteredHadiths(results);
+    const timer = setTimeout(() => {
+      applyFilters();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [
     hadiths,
     searchTerm,
@@ -172,118 +183,33 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     selectedGrade,
     bookmarks,
     showBookmarks,
+    setFilteredHadiths,
   ]);
 
-  const updateBookmarks = (
-    newBookmarks: (
-      | Bookmark
-      | { id: number; hadithId: number; dateAdded: string }
-    )[],
-    message: string
-  ): void => {
-    setBookmarks(newBookmarks);
-    localStorage.setItem("hadithBookmarks", JSON.stringify(newBookmarks));
-
-    toast.open({
-      content: message,
-      variant: "success",
-    });
-  };
-
-  const toggleBookmark = (
-    id: number,
-    event: React.MouseEvent<HTMLButtonElement>
-  ): void => {
-    event.stopPropagation();
-
-    const isBookmarked = bookmarks.some((bookmark) => bookmark.id === id);
-
-    if (isBookmarked) {
-      const newBookmarks = bookmarks.filter((bookmark) => bookmark.id !== id);
-      updateBookmarks(newBookmarks, "Hadith removed from bookmarks");
-      return;
-    }
-
-    const hadithToBookmark = hadiths.find((hadith) => hadith.id === id);
-    if (!hadithToBookmark) return;
-
-    const newBookmark = {
-      id: hadithToBookmark.id,
-      hadithId: hadithToBookmark.id,
-      dateAdded: new Date().toISOString(),
-    };
-
-    updateBookmarks([...bookmarks, newBookmark], "Hadith bookmarked!");
-  };
-
   useEffect(() => {
-    if (initialHadithId && hadiths.length > 0) {
-      const id = parseInt(initialHadithId, 10);
-      const hadith = hadiths.find((h) => h.id === id);
+    const handler = setTimeout(() => {
+      refetch();
+    }, 300);
 
-      if (hadith) {
-        setSelectedHadith(hadith);
-        setViewingHadithId(hadith.id);
-      }
-    }
-  }, [initialHadithId, hadiths]);
-
-  const openHadithDetails = (hadith: Hadith) => {
-    setSelectedHadith(hadith);
-    setViewingHadithId(hadith.id);
-
-    // Update URL
-    if (!initialHadithId || parseInt(initialHadithId, 10) !== hadith.id) {
-      window.history.pushState(
-        { hadithId: hadith.number },
-        "",
-        `/hadith/${hadith.number}`
-      );
-    }
-  };
-
-  const closeHadithDetails = () => {
-    setSelectedHadith(null);
-    setViewingHadithId(null);
-
-    // Update URL
-    if (!initialHadithId) {
-      window.history.pushState({ hadithId: null }, "", "/hadith");
-    } else {
-      window.history.back();
-    }
-  };
-
-  useEffect(() => {
-    const handlePopState = () => {
-      const matches = window.location.pathname.match(/\/hadith\/(\d+)/);
-
-      if (matches && matches[1]) {
-        const id = parseInt(matches[1], 10);
-        if (id !== viewingHadithId) {
-          const hadith = hadiths.find((h) => h.id === id);
-          if (hadith) {
-            setSelectedHadith(hadith);
-            setViewingHadithId(id);
-          }
-        }
-      } else {
-        setSelectedHadith(null);
-        setViewingHadithId(null);
-      }
-    };
-
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, [hadiths, viewingHadithId]);
-
-  useEffect(() => {
-    refetch();
-  }, [searchTerm]);
+    return () => clearTimeout(handler);
+  }, [searchTerm, refetch]);
 
   if (isError) {
     router.replace("/something-wrong");
   }
+
+  const handleCopyHadithText = (text: string) => {
+    copyHadithText(setCopied, { text, displayLanguage });
+    toast.open({
+      content: "Hadith copied successfully!",
+      variant: "success",
+    });
+  };
+
+  const handleResetFilters = () => {
+    filterAppliedRef.current = false;
+    resetFilters();
+  };
 
   return (
     <Layout
@@ -326,6 +252,23 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
             </section>
           ) : (
             <div className="flex-1 p-3 sm:p-6 overflow-y-auto items-center justify-center">
+              {filteredHadiths.length > 0 && (
+                <div className="space-y-3 sm:space-y-6">
+                  {filteredHadiths?.map((hadith) => (
+                    <HadithCard
+                      key={hadith?.id}
+                      hadith={hadith}
+                      viewHadithDetails={openHadithDetails}
+                      displayLanguage={displayLanguage}
+                      bookmarks={bookmarks}
+                      toggleBookmark={(id, event) =>
+                        toggleBookmark(id, hadiths, event)
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+
               {filteredHadiths.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-full text-center p-4">
                   <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
@@ -333,28 +276,13 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
                   </p>
                   <button
                     className="text-xs sm:text-sm text-gray-500 border p-1.5 sm:p-2 rounded-sm relative overflow-hidden group hover:cursor-pointer"
-                    onClick={resetFilters}
+                    onClick={handleResetFilters}
                   >
                     <span className="relative z-10 transition-colors duration-150 group-hover:text-white">
                       Clear filters
                     </span>
                     <span className="absolute inset-0 bg-black/80 transform scale-x-0 origin-left transition-transform duration-150 ease-in-out group-hover:scale-x-100"></span>
                   </button>
-                </div>
-              )}
-
-              {filteredHadiths.length > 0 && (
-                <div className="space-y-3 sm:space-y-6">
-                  {filteredHadiths?.map((hadith) => (
-                    <HadithCard
-                      key={hadith.id}
-                      hadith={hadith}
-                      viewHadithDetails={openHadithDetails}
-                      displayLanguage={displayLanguage}
-                      bookmarks={bookmarks}
-                      toggleBookmark={toggleBookmark}
-                    />
-                  ))}
                 </div>
               )}
 
@@ -370,22 +298,15 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
           )}
         </main>
 
-        {/* Hadith detail modal */}
         {selectedHadith && (
           <HadithDetailsModal
             selectedHadith={selectedHadith}
             closeHadithDetails={closeHadithDetails}
-            toggleBookmark={toggleBookmark}
+            toggleBookmark={(id, event) => toggleBookmark(id, hadiths, event)}
             bookmarks={bookmarks}
             displayLanguage={displayLanguage}
             isCopied={copied}
-            copyHadithText={(text) => {
-              copyHadithText(setCopied, { text, displayLanguage });
-              toast.open({
-                content: "Hadith copied successfully!",
-                variant: "success",
-              });
-            }}
+            copyHadithText={handleCopyHadithText}
           />
         )}
 

@@ -3,7 +3,7 @@ import { useCallback } from "react";
 // eslint-disable-next-line no-undef
 function useInfiniteScroll(
   callbackParam = () => {},
-  options?: IntersectionObserverInit
+  options?: IntersectionObserverInit,
 ) {
   const callback = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -11,7 +11,7 @@ function useInfiniteScroll(
         callbackParam();
       }
     },
-    [callbackParam]
+    [callbackParam],
   );
 
   const infiniteScrollRef = useCallback((node: HTMLElement | null) => {
@@ -21,7 +21,7 @@ function useInfiniteScroll(
 
     const intersectionObserver = new IntersectionObserver(
       callback,
-      options ?? {}
+      options ?? {},
     );
     intersectionObserver.observe(node);
   }, []);

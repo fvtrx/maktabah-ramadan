@@ -29,7 +29,7 @@ const useBookmarkManager = () => {
       | Bookmark
       | { id: number; hadithId: number; dateAdded: string }
     )[],
-    message: string
+    message: string,
   ): void => {
     try {
       setBookmarks(newBookmarks);
@@ -51,7 +51,7 @@ const useBookmarkManager = () => {
   const toggleBookmark = (
     id: number,
     hadiths: Hadith[],
-    event?: React.MouseEvent<HTMLButtonElement>
+    event?: React.MouseEvent<HTMLButtonElement>,
   ): void => {
     if (event) {
       event.stopPropagation();

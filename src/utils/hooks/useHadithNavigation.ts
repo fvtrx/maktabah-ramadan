@@ -54,7 +54,7 @@ const useHadithNavigation = (hadiths: Hadith[], initialHadithId?: string) => {
       window.history.pushState(
         { hadithId: hadith.number },
         "",
-        `/hadith/${hadith.number}`
+        `/hadith/${hadith.number}`,
       );
     }
   };
