@@ -32,10 +32,8 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     showBookmarks,
     searchTerm,
     isSidebarOpen,
-
     bookmarks,
     selectedGrade,
-
     setHadiths,
     setFilteredHadiths,
     setCollections,
@@ -179,7 +177,6 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     searchTerm,
     selectedCollection,
     selectedBook,
-
     selectedGrade,
     bookmarks,
     showBookmarks,

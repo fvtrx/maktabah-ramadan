@@ -28,22 +28,23 @@ export interface Hadith {
 
 const useGetAllHadith = (
   params: Params,
-  options?: UseInfiniteQueryOptions<AxiosResponse<Hadith[]>, AxiosError>,
+  options?: UseInfiniteQueryOptions<AxiosResponse<Hadith[]>, AxiosError>
 ) => {
   const toast = useToast();
   const { pagination_number, ...restParams } = params;
 
   return useInfiniteQuery<AxiosResponse<Hadith[]>, AxiosError>(
     [ALL_HADITH_PATH, params],
-    () => {
+    ({ pageParam = 1 }) => {
       return maktabahRamadanBaseUrl.post(ALL_HADITH_PATH, {
         pagination_number: pagination_number ?? COUNT_PER_PAGE,
+        next: pageParam > 1 ? (pageParam - 1) * pagination_number : undefined,
         ...restParams,
       });
     },
     {
       getNextPageParam: (lastPage, allPages) => {
-        if (lastPage?.data?.length) {
+        if (lastPage?.data?.length === pagination_number) {
           return allPages.length + 1;
         }
         return undefined;
@@ -60,7 +61,7 @@ const useGetAllHadith = (
         }
       },
       ...options,
-    },
+    }
   );
 };
 

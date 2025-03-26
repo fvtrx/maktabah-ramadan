@@ -1,32 +1,32 @@
-import { useCallback } from "react";
+import { useEffect, useRef } from "react";
 
-// eslint-disable-next-line no-undef
-function useInfiniteScroll(
-  callbackParam = () => {},
-  options?: IntersectionObserverInit,
-) {
-  const callback = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      if (entries[0].isIntersecting) {
-        callbackParam();
-      }
-    },
-    [callbackParam],
-  );
+const useInfiniteScroll = (loadMore: () => void) => {
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const infiniteScrollRef = useCallback((node: HTMLElement | null) => {
-    if (!node) {
-      return;
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
-    const intersectionObserver = new IntersectionObserver(
-      callback,
-      options ?? {},
-    );
-    intersectionObserver.observe(node);
-  }, []);
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [loadMore]);
 
-  return infiniteScrollRef;
-}
+  return loadMoreRef;
+};
 
 export default useInfiniteScroll;
