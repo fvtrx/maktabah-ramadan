@@ -5,7 +5,7 @@ import { useInfiniteQuery, UseInfiniteQueryOptions } from "react-query";
 
 export const ALL_HADITH_PATH = "/all-hadith";
 
-export const COUNT_PER_PAGE = 25;
+export const COUNT_PER_PAGE = 10;
 
 type Params = {
   paginate?: boolean;
@@ -26,27 +26,47 @@ export interface Hadith {
   lesson: string[];
 }
 
+type HadithResponse = {
+  data: Hadith[];
+};
+
 const useGetAllHadith = (
   params: Params,
-  options?: UseInfiniteQueryOptions<AxiosResponse<Hadith[]>, AxiosError>
+  options?: UseInfiniteQueryOptions<AxiosResponse<HadithResponse>, AxiosError>
 ) => {
   const toast = useToast();
   const { pagination_number, ...restParams } = params;
 
-  return useInfiniteQuery<AxiosResponse<Hadith[]>, AxiosError>(
+  return useInfiniteQuery<AxiosResponse<HadithResponse>, AxiosError>(
     [ALL_HADITH_PATH, params],
     ({ pageParam = 1 }) => {
-      return maktabahRamadanBaseUrl.post(ALL_HADITH_PATH, {
-        pagination_number: pagination_number ?? COUNT_PER_PAGE,
-        next: pageParam > 1 ? (pageParam - 1) * pagination_number : undefined,
+      // Calculate the correct 'next' value based on the current page
+      // For the first page, don't send a 'next' parameter
+      // For subsequent pages, calculate the proper offset
+      const nextValue =
+        pageParam > 1 ? (pageParam - 1) * pagination_number : undefined;
+
+      // Create a clean request object without undefined values
+      const requestParams = {
+        pagination_number,
         ...restParams,
-      });
+      };
+
+      // Only add next parameter if it's defined
+      if (nextValue !== undefined) {
+        requestParams.next = nextValue;
+      }
+
+      return maktabahRamadanBaseUrl.post(ALL_HADITH_PATH, requestParams);
     },
     {
       getNextPageParam: (lastPage, allPages) => {
-        if (lastPage?.data?.length === pagination_number) {
+        // Check if we received the maximum number of items per page
+        // If so, there might be more data to fetch
+        if (lastPage?.data?.data.length === pagination_number) {
           return allPages.length + 1;
         }
+        // If we got fewer items than the maximum, we've reached the end
         return undefined;
       },
       onError: (error) => {

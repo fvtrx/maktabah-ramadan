@@ -10,13 +10,15 @@ import useBookmarkManager from "@src/utils/hooks/useBookmarkManager";
 import useHadithNavigation from "@src/utils/hooks/useHadithNavigation";
 import useInfiniteScroll from "@src/utils/hooks/useInfiniteScroll";
 import useToast from "@src/utils/hooks/useToast";
-import useGetAllHadith, { Hadith } from "@src/utils/queries/useGetAllHadith";
+import useGetAllHadith, {
+  COUNT_PER_PAGE,
+  Hadith,
+} from "@src/utils/queries/useGetAllHadith";
 import router from "next/router";
 import React, { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 
 const FILTER_ALL = "all";
-const PAGINATION_SIZE = 25;
 
 const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   initialHadithId,
@@ -65,15 +67,33 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     isFetchingNextPage,
     isLoading,
     refetch,
+    hasNextPage,
   } = useGetAllHadith({
-    pagination_number: PAGINATION_SIZE,
+    paginate: true,
+    pagination_number: COUNT_PER_PAGE,
   });
 
-  const loadMoreRef = useInfiniteScroll(fetchNextPage);
+  const loadMoreRef = useInfiniteScroll(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  });
 
-  const hadithList: Hadith[] | undefined = data?.pages.flatMap(
-    (page) => page.data
-  );
+  const hadithList: Hadith[] | undefined = React.useMemo(() => {
+    if (!data?.pages) return [];
+
+    const uniqueHadithsMap = new Map<number, Hadith>();
+
+    data.pages.forEach((page) => {
+      page.data.data.forEach((hadith) => {
+        if (hadith.id && !uniqueHadithsMap.has(hadith.id)) {
+          uniqueHadithsMap.set(hadith.id, hadith);
+        }
+      });
+    });
+
+    return Array.from(uniqueHadithsMap.values());
+  }, [data?.pages]);
 
   useEffect(() => {
     if (isMobile && isSidebarOpen) {
@@ -81,7 +101,6 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     }
   }, [isMobile, isSidebarOpen, toggleSidebar]);
 
-  // Process initial data from API
   useEffect(() => {
     if (hadithList && hadithList.length > 0 && !hadithsSetRef.current) {
       hadithsSetRef.current = true;
@@ -109,6 +128,14 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     setBookOptions,
     loadSavedBookmarks,
   ]);
+
+  useEffect(() => {
+    if (hadithsSetRef.current && hadithList && hadithList.length > 0) {
+      if (hadiths.length !== hadithList.length) {
+        setHadiths(hadithList);
+      }
+    }
+  }, [hadithList, hadiths.length, setHadiths]);
 
   useEffect(() => {
     if (!hadiths.length) return;
