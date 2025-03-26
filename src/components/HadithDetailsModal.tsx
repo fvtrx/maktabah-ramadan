@@ -1,6 +1,7 @@
 import { Bookmark, DisplayLanguage } from "@src/store";
 import { directDownload } from "@src/utils/helpers/shareHadith"; // Import the screenshot function
 import { Hadith } from "@src/utils/queries/useGetAllHadith";
+import isEmpty from "lodash/isEmpty";
 import startCase from "lodash/startCase";
 import { DownloadIcon } from "lucide-react";
 import React, { FC, useEffect, useRef, useState } from "react";
@@ -11,7 +12,7 @@ type Props = {
   closeHadithDetails: () => void;
   toggleBookmark: (
     id: number,
-    event: React.MouseEvent<HTMLButtonElement>,
+    event: React.MouseEvent<HTMLButtonElement>
   ) => void;
   displayLanguage: DisplayLanguage;
   copyHadithText: (text: string) => void;
@@ -162,29 +163,31 @@ const HadithDetailsModal: FC<Props> = ({
             )}
           </div>
 
-          <div
-            style={{
-              opacity: isOpen ? 1 : 0,
-              transform: isOpen ? "translateY(0)" : "translateY(8px)",
-              transition: "opacity 400ms ease, transform 400ms ease",
-              transitionDelay: "300ms",
-              willChange: "opacity, transform",
-            }}
-            className="mt-4 sm:mt-6"
-          >
-            <h3 className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
-              Pengajaran Hadis
-            </h3>
-            <ol className="list-decimal pl-4 sm:pl-5 space-y-1 sm:space-y-2 text-sm sm:text-base">
-              {selectedHadith.lesson.map((item, index) => {
-                return (
-                  <li key={index} className="text-justify">
-                    {item}
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
+          {selectedHadith.lesson && !isEmpty(selectedHadith.lesson) && (
+            <div
+              style={{
+                opacity: isOpen ? 1 : 0,
+                transform: isOpen ? "translateY(0)" : "translateY(8px)",
+                transition: "opacity 400ms ease, transform 400ms ease",
+                transitionDelay: "300ms",
+                willChange: "opacity, transform",
+              }}
+              className="mt-4 sm:mt-6"
+            >
+              <h3 className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+                Pengajaran Hadis
+              </h3>
+              <ol className="list-decimal pl-4 sm:pl-5 space-y-1 sm:space-y-2 text-sm sm:text-base">
+                {selectedHadith.lesson.map((item, index) => {
+                  return (
+                    <li key={index} className="text-justify">
+                      {item}
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          )}
 
           {/* <div className="flex flex-wrap pt-4 sm:pt-6 gap-1 sm:gap-2 items-center">
             <p className="text-xs sm:text-sm text-gray-500">Kata kunci:</p>
