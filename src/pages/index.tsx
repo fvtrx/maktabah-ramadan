@@ -106,6 +106,14 @@ export default function Home() {
               </div>
             </div>
 
+            <div className="mb-6 pb-2 text-gray-200 text-sm italic">
+              Sumber data hadis diperoleh dari PDF: <br />{" "}
+              <span className="font-semibold">
+                Himpunan Hadith-Hadith Sahih Amalan Sunnah Puasa & Ramadan
+              </span>
+              , terbitan <span className="font-semibold">JAKIM</span>
+            </div>
+
             <button
               onClick={handleClick}
               disabled={isLoading}
