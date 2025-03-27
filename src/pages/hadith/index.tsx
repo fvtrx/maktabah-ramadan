@@ -1,5 +1,6 @@
 import Layout from "@src/components/common/Layout";
 import FilterHadithSidebar from "@src/components/FilterHadithSidebar";
+import Footer from "@src/components/Footer";
 import HadithCard from "@src/components/HadithCard";
 import HadithDetailsModal from "@src/components/HadithDetailsModal";
 import LoadingIcon from "@src/components/icons/LoadingIcon";
@@ -319,7 +320,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
                 ref={loadMoreRef}
               >
                 {isFetchingNextPage && (
-                  <LoadingIcon className="mt-4 text-decubeBlue" />
+                  <LoadingIcon className="mt-4 text-violet-500" />
                 )}
               </div>
             </div>
@@ -338,12 +339,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
           />
         )}
 
-        {/* Footer */}
-        <footer className="py-2 sm:py-4 px-3 sm:px-6 border-t border-gray-100 text-center text-gray-400 text-xs sm:text-sm">
-          <span className="font-semibold text-black/60">Maktabah Ramadan</span>{" "}
-          • Develop by{" "}
-          <span className="text-black/60 font-semibold">fvtrx</span> &copy;.
-        </footer>
+        <Footer />
       </div>
     </Layout>
   );
