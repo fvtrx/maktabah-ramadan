@@ -96,10 +96,11 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
   }, [data?.pages]);
 
   useEffect(() => {
+    // Only close sidebar when transitioning TO mobile view with sidebar open
     if (isMobile && isSidebarOpen) {
       toggleSidebar();
     }
-  }, [isMobile, isSidebarOpen, toggleSidebar]);
+  }, [isMobile, toggleSidebar]); // Include toggleSidebar but not isSidebarOpen
 
   useEffect(() => {
     if (hadithList && hadithList.length > 0 && !hadithsSetRef.current) {
@@ -268,7 +269,10 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
         </header>
 
         <main className="flex flex-1 overflow-hidden">
-          <FilterHadithSidebar isSidebarOpen={isSidebarOpen} />
+          <FilterHadithSidebar
+            isSidebarOpen={isSidebarOpen}
+            toggleSidebar={toggleSidebar}
+          />
 
           {!data && isLoading ? (
             <section className="flex w-full items-center justify-center gap-2 py-8">
