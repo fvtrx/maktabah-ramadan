@@ -12,7 +12,6 @@ type Props = {
 const FilterHadithSidebar = ({ isSidebarOpen, toggleSidebar }: Props) => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number | null>(null);
-  const [isScrollingDown, setIsScrollingDown] = useState(false);
   const lastScrollTop = useRef(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -107,22 +106,21 @@ const FilterHadithSidebar = ({ isSidebarOpen, toggleSidebar }: Props) => {
     touchStartY.current = null;
   };
 
-  // Handle scroll event
+  // Handle scroll event - Fixed to only close when scrolling DOWN the sidebar
   const handleScroll = useCallback(() => {
     if (!sidebarRef.current) return;
 
     const scrollTop = sidebarRef.current.scrollTop;
+    const isScrollingDown = scrollTop > lastScrollTop.current;
 
-    // Detect scroll direction
-    setIsScrollingDown(scrollTop < lastScrollTop.current);
-
-    // If scrolling down and we're near the top, close the sidebar
+    // If scrolling down (increasing scrollTop) AND we're near the top of the sidebar,
+    // close the sidebar
     if (scrollTop < 10 && isScrollingDown && toggleSidebar && isSidebarOpen) {
       toggleSidebar();
     }
 
     lastScrollTop.current = scrollTop;
-  }, [isScrollingDown, toggleSidebar, isSidebarOpen]);
+  }, [toggleSidebar, isSidebarOpen]);
 
   // Add and remove scroll event listener
   useEffect(() => {
