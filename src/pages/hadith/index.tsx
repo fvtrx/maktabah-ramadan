@@ -256,7 +256,9 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
                 ☰
               </button>
               <h1 className="text-lg sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-black to-violet-300 truncate">
-                <span className="text-lg sm:text-2xl mr-1 sm:mr-2">☪</span>
+                {!isMobile && (
+                  <span className="text-lg sm:text-2xl mr-1 sm:mr-2">☪</span>
+                )}
                 <span className="inline">Maktabah</span> Ramadan
               </h1>
             </div>

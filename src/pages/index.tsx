@@ -2,12 +2,14 @@ import Layout from "@src/components/common/Layout";
 import StarAnimation from "@src/components/StarAnimation";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useMediaQuery } from "react-responsive";
 
 export default function Home() {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
 
   const handleClick = () => {
     setIsLoading(true);
@@ -68,8 +70,59 @@ export default function Home() {
             `}
         >
           <div className="w-full max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-yellow-300 drop-shadow-lg">
-              <span className="text-6xl mr-2">☪</span> Maktabah Ramadan
+            <h1 className="flex justify-center items-center text-center mx-auto text-5xl md:text-6xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-yellow-300 drop-shadow-lg">
+              {!isMobile && (
+                <div className="relative group mr-3">
+                  <svg
+                    className="transform transition-transform duration-300 group-hover:rotate-12"
+                    fill="url(#moonGradient)"
+                    height="54"
+                    width="54"
+                    version="1.1"
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlnsXlink="http://www.w3.org/1999/xlink"
+                    viewBox="0 0 512 512"
+                    xmlSpace="preserve"
+                    stroke="none"
+                  >
+                    {/* Define gradient for the moon */}
+                    <defs>
+                      <linearGradient
+                        id="moonGradient"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" stopColor="#ffffff" />
+                        <stop offset="100%" stopColor="#ffd700" />
+                      </linearGradient>
+                    </defs>
+
+                    <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+                    <g
+                      id="SVGRepo_tracerCarrier"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    ></g>
+                    <g id="SVGRepo_iconCarrier">
+                      <g>
+                        <g>
+                          <path d="M413.497,174.718c-4.189-1.102-8.534,1.053-10.203,5.039c-18.307,43.68-60.738,71.904-108.096,71.904 c-64.599,0-117.153-52.554-117.153-117.153c0-57.696,42.97-107.522,99.952-115.899c4.283-0.63,7.447-4.321,7.415-8.65 c-0.033-4.331-3.252-7.974-7.544-8.539C270.718,0.478,263.41,0,256.146,0C165.23,0,91.774,73.965,91.774,164.881 c0,79.007,54.747,145.184,130.679,161.174v23.411c-6.508,3.009-8.678,8.602-8.678,15.008c0,6.407,2.169,12,8.678,15.009v81.968 c-10.847,3.585-17.866,13.205-17.866,24.515c0,14.356,11.424,26.034,25.779,26.034c14.356,0,26.416-11.678,26.416-26.034 c0-11.309-8.295-20.93-16.973-24.515v-81.968c4.339-3.008,8.678-8.602,8.678-15.009c0-6.407-4.339-12-8.678-15.008v-20.623 c4.339,0.599,10.984,0.919,16.846,0.919c83.713,0,153.864-62.614,163.516-145.648C420.67,179.82,417.678,175.814,413.497,174.718z M230.112,494.644c-4.785,0-8.678-3.892-8.678-8.678c0-4.786,3.893-8.678,8.678-8.678c4.785,0,8.678,3.892,8.678,8.678 C238.79,490.752,234.897,494.644,230.112,494.644z M256.146,312.407c-81.345,0-147.525-66.18-147.525-147.525 c0-69.976,48.973-128.73,114.445-143.786c-37.652,24.163-62.377,66.526-62.377,113.413c0,74.168,60.34,134.508,134.508,134.508 c34.995,0,67.643-13.422,92.074-36.358C362.603,280.388,312.78,312.407,256.146,312.407z"></path>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+
+                  {/* Small stars around the moon */}
+                  <div className="absolute -top-2 -right-2 w-2 h-2 bg-yellow-200 rounded-full animate-pulse"></div>
+                  <div
+                    className="absolute -bottom-1 -left-1 w-1 h-1 bg-yellow-200 rounded-full animate-pulse"
+                    style={{ animationDelay: "0.5s" }}
+                  ></div>
+                </div>
+              )}
+              <span className="text-center">Maktabah Ramadan</span>
             </h1>
             <p className="text-xl md:text-2xl mb-12 max-w-2xl mx-auto">
               Destinasi himpunan hadis-hadis Ramadan untuk rujukan anda.
