@@ -113,6 +113,13 @@ export default function Home() {
                       </g>
                     </g>
                   </svg>
+
+                  {/* Small stars around the moon */}
+                  <div className="absolute -top-2 -right-2 w-2 h-2 bg-yellow-200 rounded-full animate-pulse"></div>
+                  <div
+                    className="absolute -bottom-1 -left-1 w-1 h-1 bg-yellow-200 rounded-full animate-pulse"
+                    style={{ animationDelay: "0.5s" }}
+                  ></div>
                 </div>
               )}
               <span className="text-center">Maktabah Ramadan</span>
