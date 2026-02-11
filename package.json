@@ -30,7 +30,6 @@
     "react-responsive": "^10.0.1",
     "tailwind-merge": "^3.0.2",
     "typescript-eslint": "^8.28.0",
-    "unused-imports": "^1.0.0",
     "zustand": "^5.0.3"
   },
   "devDependencies": {
