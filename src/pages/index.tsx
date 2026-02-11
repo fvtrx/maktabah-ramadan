@@ -218,7 +218,8 @@ export default function Home() {
           </div>
 
           <footer className="pt-12 pb-6 md:pb-0 lg:pb-0 text-center text-sm opacity-70">
-            &copy; 2025 Maktabah Ramadan. Hak Cipta Terpelihara.
+            &copy; {`${new Date().getFullYear()}`} Maktabah Ramadan. Hak Cipta
+            Terpelihara.
           </footer>
         </main>
       </div>

@@ -19,7 +19,7 @@ export default function Footer() {
         @lolzilla45
       </Link>{" "}
       {""}
-      &copy;.
+      &copy; {`${new Date().getFullYear()}`} All rights reserved.
     </footer>
   );
 }
