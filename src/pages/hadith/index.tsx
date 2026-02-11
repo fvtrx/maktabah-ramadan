@@ -19,7 +19,6 @@ import { useHadithData } from "@src/utils/hooks/useHadithData";
 import { useHadithFilters } from "@src/utils/hooks/useHadithFilters";
 import { useFilterSidebar } from "@src/utils/hooks/useFilterSidebar";
 import { HadithContent } from "@src/components/HadithContent";
-import { ErrorState } from "@src/components/state/ErrorState";
 
 interface HadithListPageProps {
   initialHadithId?: string;
@@ -51,7 +50,6 @@ const HadithListPage: React.FC<HadithListPageProps> = ({ initialHadithId }) => {
   const {
     data,
     fetchNextPage,
-    isError,
     isFetchingNextPage,
     isLoading,
     refetch,
@@ -111,11 +109,6 @@ const HadithListPage: React.FC<HadithListPageProps> = ({ initialHadithId }) => {
   const handleResetFilters = useCallback(() => {
     resetFilters();
   }, [resetFilters]);
-
-  // MARK: Error state - early return
-  if (isError) {
-    return <ErrorState onRefetch={refetch} />;
-  }
 
   return (
     <Layout

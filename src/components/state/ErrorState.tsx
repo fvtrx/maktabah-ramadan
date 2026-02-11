@@ -1,5 +1,5 @@
 import React from "react";
-import Lottie from "react-lottie";
+import Lottie from "lottie-react";
 import ErrorStateLottie from "@src/components/LottieFiles/ErrorState.json";
 
 interface ErrorStateProps {
@@ -8,14 +8,11 @@ interface ErrorStateProps {
 
 export const ErrorState: React.FC<ErrorStateProps> = ({ onRefetch }) => {
   return (
-    <div className=" bg-white flex-1 p-3 sm:p-6 overflow-y-auto flex items-center justify-center h-screen">
+    <div className=" bg-white flex-1 p-3 sm:p-6 overflow-y-auto flex items-center justify-center ">
       <div className="flex flex-col items-center justify-center h-full text-center p-4">
         <Lottie
-          options={{
-            animationData: ErrorStateLottie,
-            loop: true,
-            autoplay: true,
-          }}
+          animationData={ErrorStateLottie}
+          loop={true}
           style={{ width: 180, height: 180 }}
         />
         <p className="text-gray-400 -mt-4 mb-3 sm:mb-4 text-sm sm:text-base">
