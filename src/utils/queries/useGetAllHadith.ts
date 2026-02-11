@@ -32,7 +32,7 @@ type HadithResponse = {
 
 const useGetAllHadith = (
   params: Params,
-  options?: UseInfiniteQueryOptions<AxiosResponse<HadithResponse>, AxiosError>
+  options?: UseInfiniteQueryOptions<AxiosResponse<HadithResponse>, AxiosError>,
 ) => {
   const toast = useToast();
   const { pagination_number, ...restParams } = params;
@@ -60,6 +60,7 @@ const useGetAllHadith = (
       return maktabahRamadanBaseUrl.post(ALL_HADITH_PATH, requestParams);
     },
     {
+      retry: false,
       getNextPageParam: (lastPage, allPages) => {
         // Check if we received the maximum number of items per page
         // If so, there might be more data to fetch
@@ -81,7 +82,7 @@ const useGetAllHadith = (
         }
       },
       ...options,
-    }
+    },
   );
 };
 
