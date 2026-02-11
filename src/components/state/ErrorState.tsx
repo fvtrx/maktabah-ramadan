@@ -15,7 +15,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({ onRefetch }) => {
           loop={true}
           style={{ width: 180, height: 180 }}
         />
-        <p className="text-gray-400 -mt-4 mb-3 sm:mb-4 text-sm sm:text-base">
+        <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
           Something went wrong while fetching hadiths. <br /> Please try again.
         </p>
         <button
