@@ -1,9 +1,7 @@
 import Layout from "@src/components/common/Layout";
 import FilterHadithSidebar from "@src/components/FilterHadithSidebar";
 import Footer from "@src/components/Footer";
-import HadithCard from "@src/components/HadithCard";
 import HadithDetailsModal from "@src/components/HadithDetailsModal";
-import LoadingIcon from "@src/components/icons/LoadingIcon";
 import LanguageSelector from "@src/components/LanguageSelector";
 import { useHadithStore } from "@src/store";
 import { copyHadithText } from "@src/utils/helpers/string";
@@ -15,59 +13,47 @@ import useGetAllHadith, {
   COUNT_PER_PAGE,
   Hadith,
 } from "@src/utils/queries/useGetAllHadith";
-import router from "next/router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useMediaQuery } from "react-responsive";
+import { useHadithData } from "@src/utils/hooks/useHadithData";
+import { useHadithFilters } from "@src/utils/hooks/useHadithFilters";
+import { useFilterSidebar } from "@src/utils/hooks/useFilterSidebar";
+import { HadithContent } from "@src/components/HadithContent";
 
-const FILTER_ALL = "all";
+interface HadithListPageProps {
+  initialHadithId?: string;
+}
 
-const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
-  initialHadithId,
-}) => {
+const HadithListPage: React.FC<HadithListPageProps> = ({ initialHadithId }) => {
+  const store = useHadithStore();
   const {
     hadiths,
-    filteredHadiths,
     selectedHadith,
     displayLanguage,
-    books,
-    selectedCollection,
-    selectedBook,
-    showBookmarks,
-    searchTerm,
-    isSidebarOpen,
     bookmarks,
-    selectedGrade,
-    setHadiths,
-    setFilteredHadiths,
-    setCollections,
-    setBookOptions,
-    setBooks,
-    setSelectedBook,
+    isSidebarOpen,
     setDisplayLanguage,
     resetFilters,
     toggleSidebar,
-  } = useHadithStore();
-
-  const hadithsSetRef = useRef(false);
-  const filterAppliedRef = useRef(false);
+  } = store;
 
   const toast = useToast();
-  const [copied, setCopied] = useState(false);
-  const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
-
+  const [copied, setCopied] = React.useState(false);
+  const isMobile = useMediaQuery({ query: "(max-width: 760px)" });
   const { loadSavedBookmarks, toggleBookmark } = useBookmarkManager();
   const { openHadithDetails, closeHadithDetails } = useHadithNavigation(
     hadiths,
-    initialHadithId
+    initialHadithId,
   );
 
+  // MARK: query
   const {
     data,
     fetchNextPage,
-    isError,
     isFetchingNextPage,
     isLoading,
     refetch,
+    isRefetching,
     hasNextPage,
   } = useGetAllHadith({
     paginate: true,
@@ -80,7 +66,7 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     }
   });
 
-  const hadithList: Hadith[] | undefined = React.useMemo(() => {
+  const hadithList = useMemo<Hadith[]>(() => {
     if (!data?.pages) return [];
 
     const uniqueHadithsMap = new Map<number, Hadith>();
@@ -96,146 +82,33 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
     return Array.from(uniqueHadithsMap.values());
   }, [data?.pages]);
 
-  useEffect(() => {
-    // Only close sidebar when transitioning TO mobile view with sidebar open
-    if (isMobile && isSidebarOpen) {
-      toggleSidebar();
-    }
-  }, [isMobile, toggleSidebar]); // Include toggleSidebar but not isSidebarOpen
+  // MARK: Custom hooks for data management
+  useFilterSidebar(isMobile, isSidebarOpen, toggleSidebar);
+  useHadithData(hadithList, store, loadSavedBookmarks);
+  useHadithFilters(store);
 
-  useEffect(() => {
-    if (hadithList && hadithList.length > 0 && !hadithsSetRef.current) {
-      hadithsSetRef.current = true;
+  // MARK: Event handlers
+  const handleCopyHadithText = useCallback(
+    (text: string) => {
+      copyHadithText(setCopied, { text, displayLanguage });
+      toast.open({
+        content: "Hadith copied successfully!",
+        variant: "success",
+      });
+    },
+    [displayLanguage, toast],
+  );
 
-      setHadiths(hadithList);
+  const handleToggleBookmark = useCallback(
+    (id: number, event?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      toggleBookmark(id, hadiths, event);
+    },
+    [toggleBookmark, hadiths],
+  );
 
-      const uniqueCollections = [
-        ...new Set(hadithList.map((h) => h?.collection).filter(Boolean)),
-      ];
-      const uniqueBooks = [
-        ...new Set(hadithList.map((h) => h?.book).filter(Boolean)),
-      ];
-
-      setCollections(uniqueCollections);
-      setBooks(uniqueBooks);
-      setBookOptions(uniqueBooks);
-
-      loadSavedBookmarks();
-    }
-  }, [
-    hadithList,
-    setHadiths,
-    setCollections,
-    setBooks,
-    setBookOptions,
-    loadSavedBookmarks,
-  ]);
-
-  useEffect(() => {
-    if (hadithsSetRef.current && hadithList && hadithList.length > 0) {
-      if (hadiths.length !== hadithList.length) {
-        setHadiths(hadithList);
-      }
-    }
-  }, [hadithList, hadiths.length, setHadiths]);
-
-  useEffect(() => {
-    if (!hadiths.length) return;
-
-    const newBookOptions =
-      selectedCollection === FILTER_ALL
-        ? books
-        : [
-            ...new Set(
-              hadiths
-                .filter((h) => h.collection === selectedCollection)
-                .map((h) => h?.book)
-                .filter(Boolean)
-            ),
-          ];
-
-    setBookOptions(newBookOptions);
-    setSelectedBook(FILTER_ALL);
-  }, [selectedCollection, hadiths, books, setBookOptions, setSelectedBook]);
-
-  useEffect(() => {
-    if (!hadiths.length) return;
-
-    const applyFilters = () => {
-      let results = [...hadiths];
-
-      if (showBookmarks) {
-        results = results.filter((hadith) =>
-          bookmarks.some((bookmark) => bookmark.id === hadith.id)
-        );
-      }
-
-      if (selectedCollection !== FILTER_ALL) {
-        results = results.filter(
-          (hadith) => hadith.collection === selectedCollection
-        );
-      }
-
-      if (selectedBook !== FILTER_ALL) {
-        results = results.filter((hadith) => hadith.book === selectedBook);
-      }
-
-      if (searchTerm.trim() !== "") {
-        const term = searchTerm.toLowerCase();
-        results = results.filter(
-          (hadith) =>
-            hadith.meaning?.toLowerCase().includes(term) ||
-            hadith.arabic_text?.toLowerCase().includes(term) ||
-            hadith.book?.toLowerCase().includes(term) ||
-            hadith.number?.includes(term) ||
-            hadith.title?.toLowerCase().includes(term)
-        );
-      }
-
-      filterAppliedRef.current = true;
-      setFilteredHadiths(results);
-    };
-
-    const timer = setTimeout(() => {
-      applyFilters();
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [
-    hadiths,
-    searchTerm,
-    selectedCollection,
-    selectedBook,
-    selectedGrade,
-    bookmarks,
-    showBookmarks,
-    setFilteredHadiths,
-  ]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      refetch();
-    }, 300);
-
-    return () => clearTimeout(handler);
-  }, [searchTerm, refetch]);
-
-  if (isError) {
-    router.replace("/something-wrong");
-  }
-
-  const handleCopyHadithText = (text: string) => {
-    copyHadithText(setCopied, { text, displayLanguage });
-    toast.open({
-      content: "Hadith copied successfully!",
-      variant: "success",
-    });
-  };
-
-  const handleResetFilters = () => {
-    filterAppliedRef.current = false;
+  const handleResetFilters = useCallback(() => {
     resetFilters();
-  };
+  }, [resetFilters]);
 
   return (
     <Layout
@@ -263,77 +136,39 @@ const HadithListPage: React.FC<{ initialHadithId?: string }> = ({
               </h1>
             </div>
 
-            {/* Language switcher */}
             <LanguageSelector
               selectedLanguage={displayLanguage}
-              onLanguageChange={(value) => setDisplayLanguage(value)}
+              onLanguageChange={setDisplayLanguage}
             />
           </div>
         </header>
 
+        {/* Main Content */}
         <main className="flex flex-1 overflow-hidden">
           <FilterHadithSidebar
             isSidebarOpen={isSidebarOpen}
             toggleSidebar={toggleSidebar}
           />
 
-          {!data && isLoading ? (
-            <section className="flex w-full items-center justify-center gap-2 py-8">
-              <LoadingIcon className="mx-2 my-8 text-violet-500" /> Loading...
-            </section>
-          ) : (
-            <div className="flex-1 p-3 sm:p-6 overflow-y-auto items-center justify-center">
-              {filteredHadiths.length > 0 && (
-                <div className="space-y-3 sm:space-y-6">
-                  {filteredHadiths?.map((hadith) => (
-                    <HadithCard
-                      key={hadith?.id}
-                      hadith={hadith}
-                      viewHadithDetails={openHadithDetails}
-                      displayLanguage={displayLanguage}
-                      bookmarks={bookmarks}
-                      toggleBookmark={(id, event) =>
-                        toggleBookmark(id, hadiths, event)
-                      }
-                    />
-                  ))}
-                </div>
-              )}
-
-              {filteredHadiths.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                  <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">
-                    No hadith found matching your search criteria.
-                  </p>
-                  <button
-                    className="text-xs sm:text-sm text-gray-500 border p-1.5 sm:p-2 rounded-sm relative overflow-hidden group hover:cursor-pointer"
-                    onClick={handleResetFilters}
-                  >
-                    <span className="relative z-10 transition-colors duration-150 group-hover:text-white">
-                      Clear filters
-                    </span>
-                    <span className="absolute inset-0 bg-black/80 transform scale-x-0 origin-left transition-transform duration-150 ease-in-out group-hover:scale-x-100"></span>
-                  </button>
-                </div>
-              )}
-
-              <div
-                className="flex items-center justify-center"
-                ref={loadMoreRef}
-              >
-                {isFetchingNextPage && (
-                  <LoadingIcon className="mt-4 text-violet-500" />
-                )}
-              </div>
-            </div>
-          )}
+          <HadithContent
+            isLoading={isLoading}
+            isRefetching={isRefetching}
+            hasData={!!data}
+            isFetchingNextPage={isFetchingNextPage}
+            loadMoreRef={loadMoreRef}
+            onRefetch={refetch}
+            onResetFilters={handleResetFilters}
+            onViewDetails={openHadithDetails}
+            onToggleBookmark={handleToggleBookmark}
+          />
         </main>
 
+        {/* Hadith Details Modal */}
         {selectedHadith && (
           <HadithDetailsModal
             selectedHadith={selectedHadith}
             closeHadithDetails={closeHadithDetails}
-            toggleBookmark={(id, event) => toggleBookmark(id, hadiths, event)}
+            toggleBookmark={handleToggleBookmark}
             bookmarks={bookmarks}
             displayLanguage={displayLanguage}
             isCopied={copied}
