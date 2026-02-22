@@ -12,7 +12,7 @@ type Props = {
   closeHadithDetails: () => void;
   toggleBookmark: (
     id: number,
-    event: React.MouseEvent<HTMLButtonElement>
+    event: React.MouseEvent<HTMLButtonElement>,
   ) => void;
   displayLanguage: DisplayLanguage;
   copyHadithText: (text: string) => void;
@@ -77,7 +77,7 @@ const HadithDetailsModal: FC<Props> = ({
         ref={modalContentRef}
       >
         <div className="flex justify-between items-center p-3 sm:p-6 border-b border-gray-100">
-          <div className="flex items-start flex-col gap-1 sm:gap-2 max-w-full sm:max-w-[620px]">
+          <div className="flex items-start flex-col gap-1 sm:gap-2 max-w-full sm:max-w-155">
             <h2 className="text-lg sm:text-xl font-semibold line-clamp-2">
               {startCase(selectedHadith.title.toLowerCase())}
             </h2>
@@ -87,7 +87,7 @@ const HadithDetailsModal: FC<Props> = ({
             </p>
           </div>
 
-          <div className="flex items-center space-x-3 sm:space-x-4 flex-shrink-0">
+          <div className="flex items-center space-x-3 sm:space-x-4 shrink-0">
             <button
               className="text-lg text-gray-400 hover:text-yellow-500 p-1"
               style={{ transition: "color 200ms ease" }}
