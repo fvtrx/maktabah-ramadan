@@ -128,7 +128,7 @@ const HadithListPage: React.FC<HadithListPageProps> = ({ initialHadithId }) => {
               >
                 ☰
               </button>
-              <h1 className="text-lg sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-black to-violet-300 truncate">
+              <h1 className="text-lg sm:text-2xl font-bold text-transparent bg-clip-text bg-linear-to-r from-black to-violet-300 truncate">
                 {!isMobile && (
                   <span className="text-lg sm:text-2xl mr-1 sm:mr-2">☪</span>
                 )}
