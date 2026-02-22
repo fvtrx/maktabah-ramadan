@@ -9,12 +9,46 @@ type Props = {
   toggleSidebar?: () => void;
 };
 
+const CLOSE_DRAG_THRESHOLD = 150;
+const DRAG_RESISTANCE = 0.7;
+const ANIMATION_MS = 320;
+
 const FilterHadithSidebar = ({ isSidebarOpen, toggleSidebar }: Props) => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number | null>(null);
   const lastScrollTop = useRef(0);
+
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMounted, setIsMounted] = useState(isSidebarOpen);
+  const [isVisible, setIsVisible] = useState(isSidebarOpen);
+  const [isDesktop, setIsDesktop] = useState(
+    () => window.matchMedia("(min-width: 768px)").matches,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  // Double-RAF guarantees the "hidden" frame is painted before transitioning in,
+  // preventing the jitter of a skipped initial frame.
+  useEffect(() => {
+    if (isSidebarOpen) {
+      setIsMounted(true);
+      const raf = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setIsVisible(true)),
+      );
+      return () => cancelAnimationFrame(raf);
+    } else {
+      setIsVisible(false);
+      const t = setTimeout(() => setIsMounted(false), ANIMATION_MS);
+      return () => clearTimeout(t);
+    }
+  }, [isSidebarOpen]);
+
   const {
     showBookmarks,
     setShowBookmarks,
@@ -32,108 +66,71 @@ const FilterHadithSidebar = ({ isSidebarOpen, toggleSidebar }: Props) => {
 
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
 
-  useEffect(() => {
-    setLocalSearchTerm(searchTerm);
-  }, [searchTerm]);
+  useEffect(() => setLocalSearchTerm(searchTerm), [searchTerm]);
 
-  const debouncedSetQuery = useCallback(
-    debounce((query: string) => {
-      setSearchTerm(query);
-    }, 500),
-    [setSearchTerm]
-  );
+  const debouncedSetQuery = useRef(
+    debounce((query: string) => setSearchTerm(query), 500),
+  ).current;
 
-  const handleQuery: React.ChangeEventHandler<HTMLInputElement> = (event) => {
-    event.preventDefault();
-    const query = event.currentTarget.value;
+  useEffect(() => () => debouncedSetQuery.cancel(), [debouncedSetQuery]);
 
+  const handleQuery: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const query = e.currentTarget.value;
     setLocalSearchTerm(query);
-
     debouncedSetQuery(query);
   };
 
-  useEffect(() => {
-    return () => {
-      debouncedSetQuery.cancel();
-    };
-  }, [debouncedSetQuery]);
-
-  // Handle touch start event
   const handleTouchStart = (e: React.TouchEvent) => {
-    // Only enable dragging if we're near the top of the content or at the drag handle
-    const isAtTop = sidebarRef.current?.scrollTop === 0;
     const target = e.target as HTMLElement;
     const isDragHandle =
       target.classList.contains("drag-handle") ||
       target.parentElement?.classList.contains("drag-handle");
 
-    if (isAtTop || isDragHandle) {
+    if (sidebarRef.current?.scrollTop === 0 || isDragHandle) {
       touchStartY.current = e.touches[0].clientY;
       setIsDragging(true);
     }
   };
 
-  // Handle touch move event
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current === null || !isDragging) return;
-
-    // Get current touch position
-    const touchY = e.touches[0].clientY;
-    const diff = touchY - touchStartY.current;
-
-    // Only allow downward drag (positive diff)
+    const diff = e.touches[0].clientY - touchStartY.current;
     if (diff > 0) {
-      // Apply drag with some resistance (multiply by less than 1 for resistance)
-      setDragOffset(diff * 0.7);
-
-      // Prevent scrolling while dragging
+      setDragOffset(diff * DRAG_RESISTANCE);
       e.preventDefault();
     }
   };
 
-  // Handle touch end event
   const handleTouchEnd = () => {
     if (!isDragging) return;
-
-    // If dragged more than 150px, close the sidebar
-    if (dragOffset > 150 && toggleSidebar) {
-      toggleSidebar();
-    }
-
-    // Reset drag state with animation
+    if (dragOffset > CLOSE_DRAG_THRESHOLD) toggleSidebar?.();
     setIsDragging(false);
     setDragOffset(0);
     touchStartY.current = null;
   };
 
-  // Handle scroll event - Fixed to only close when scrolling DOWN the sidebar
   const handleScroll = useCallback(() => {
     if (!sidebarRef.current) return;
-
-    const scrollTop = sidebarRef.current.scrollTop;
-    const isScrollingDown = scrollTop > lastScrollTop.current;
-
-    // If scrolling down (increasing scrollTop) AND we're near the top of the sidebar,
-    // close the sidebar
-    if (scrollTop < 10 && isScrollingDown && toggleSidebar && isSidebarOpen) {
-      toggleSidebar();
+    const { scrollTop } = sidebarRef.current;
+    if (scrollTop < 10 && scrollTop > lastScrollTop.current && isSidebarOpen) {
+      toggleSidebar?.();
     }
-
     lastScrollTop.current = scrollTop;
-  }, [toggleSidebar, isSidebarOpen]);
+  }, [isSidebarOpen, toggleSidebar]);
 
-  // Add and remove scroll event listener
   useEffect(() => {
     const sidebar = sidebarRef.current;
-    if (sidebar) {
-      sidebar.addEventListener("scroll", handleScroll);
-      return () => {
-        sidebar.removeEventListener("scroll", handleScroll);
-      };
-    }
+    if (!sidebar) return;
+    sidebar.addEventListener("scroll", handleScroll);
+    return () => sidebar.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  if (!isSidebarOpen) return null;
+  if (!isMounted) return null;
+
+  const hiddenTransform = isDesktop ? "translateX(-100%)" : "translateY(100%)";
+  const visibleTransform = isDesktop
+    ? `translateX(${-dragOffset}px)`
+    : `translateY(${dragOffset}px)`;
 
   return (
     <div
@@ -143,37 +140,26 @@ const FilterHadithSidebar = ({ isSidebarOpen, toggleSidebar }: Props) => {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
       style={{
-        transform: `translateY(${dragOffset}px)`,
-        transition: isDragging ? "none" : "transform 0.3s ease-out",
+        transform: isVisible ? visibleTransform : hiddenTransform,
+        opacity: isVisible ? 1 : 0,
+        transition: isDragging
+          ? "none"
+          : `transform ${ANIMATION_MS}ms ${isSidebarOpen ? "cubic-bezier(0.22, 1, 0.36, 1)" : "cubic-bezier(0.4, 0, 1, 1)"}, opacity ${ANIMATION_MS}ms ease`,
       }}
       className={`
-        transition-all duration-300 ease-in-out
-        ${isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"}
-        
-        /* Desktop styles - side positioning */
-        md:w-80 md:h-full md:shadow-md md:border-r md:border-gray-100 md:bg-white
-        
-        /* Mobile styles - bottom positioning */
-        fixed bottom-0 left-0 right-0 
-        md:relative
-        bg-white
-        max-h-[80vh] md:max-h-full
-        overflow-y-auto
-        rounded-t-2xl md:rounded-none
-        shadow-lg
-        z-50
-        p-4 md:p-0
+        fixed bottom-0 left-0 right-0 z-50
+        bg-white rounded-t-2xl shadow-lg
+        max-h-[80vh] overflow-y-auto p-4
+        md:relative md:right-auto md:w-80 md:h-full md:max-h-full
+        md:rounded-none md:shadow-md md:border-r md:border-gray-100 md:p-0
       `}
     >
-      {/* Mobile handle/pull tab */}
-      <div className="drag-handle w-16 h-1 bg-gray-300 rounded-full mx-auto mb-4 md:hidden"></div>
+      <div className="drag-handle w-16 h-1 bg-gray-300 rounded-full mx-auto mb-4 md:hidden" />
 
-      {/* Search - different positioning for mobile vs desktop */}
       <div className="md:p-4">
         <Search searchTerm={localSearchTerm} handleSearchChange={handleQuery} />
       </div>
 
-      {/* Bookmarks filter */}
       <div className="mb-6 md:px-4">
         <button
           className={`w-full flex items-center justify-between p-3 text-left rounded-lg transition-colors ${
@@ -188,7 +174,6 @@ const FilterHadithSidebar = ({ isSidebarOpen, toggleSidebar }: Props) => {
         </button>
       </div>
 
-      {/* Collections dropdown */}
       <div className="md:px-4">
         <Dropdown
           type="collections"
@@ -207,7 +192,6 @@ const FilterHadithSidebar = ({ isSidebarOpen, toggleSidebar }: Props) => {
         />
       </div>
 
-      {/* Reset filters button */}
       <div className="md:px-4">
         <button
           className="w-full py-3 text-sm text-gray-500 hover:text-gray-700"
