@@ -4,7 +4,6 @@ import { AxiosError, AxiosResponse } from "axios";
 import { useInfiniteQuery, UseInfiniteQueryOptions } from "react-query";
 
 export const ALL_HADITH_PATH = "/all-hadith";
-
 export const COUNT_PER_PAGE = 10;
 
 type Params = {
@@ -40,19 +39,14 @@ const useGetAllHadith = (
   return useInfiniteQuery<AxiosResponse<HadithResponse>, AxiosError>(
     [ALL_HADITH_PATH, params],
     ({ pageParam = 1 }) => {
-      // Calculate the correct 'next' value based on the current page
-      // For the first page, don't send a 'next' parameter
-      // For subsequent pages, calculate the proper offset
       const nextValue =
         pageParam > 1 ? (pageParam - 1) * pagination_number : undefined;
 
-      // Create a clean request object without undefined values
-      const requestParams = {
+      const requestParams: Params = {
         pagination_number,
         ...restParams,
       };
 
-      // Only add next parameter if it's defined
       if (nextValue !== undefined) {
         requestParams.next = nextValue;
       }
@@ -60,20 +54,38 @@ const useGetAllHadith = (
       return maktabahRamadanBaseUrl.post(ALL_HADITH_PATH, requestParams);
     },
     {
-      retry: false,
+      // ✅ retry only on 429, up to 3 times
+      retry: (failureCount, error) => {
+        if (error.response?.status === 429 && failureCount < 3) return true;
+        return false;
+      },
+
+      // ✅ exponential backoff — respects Retry-After header if present
+      retryDelay: (attempt, error) => {
+        const retryAfter = error?.response?.headers?.["retry-after"];
+        if (retryAfter) return parseInt(retryAfter) * 1000;
+        return Math.min(1000 * 2 ** attempt, 30000); // 2s → 4s → 8s (max 30s)
+      },
+
       getNextPageParam: (lastPage, allPages) => {
-        // Check if we received the maximum number of items per page
-        // If so, there might be more data to fetch
         if (lastPage?.data?.data.length === pagination_number) {
           return allPages.length + 1;
         }
-        // If we got fewer items than the maximum, we've reached the end
         return undefined;
       },
+
       onError: (error) => {
+        if (error.response?.status === 429) {
+          toast.open({
+            content: "Too many requests. Please wait a moment...",
+            variant: "error",
+          });
+          return;
+        }
+
         if (
           error.response?.status &&
-          ![400, 403].includes(error.response?.status)
+          ![400, 403].includes(error.response.status)
         ) {
           toast.open({
             content: "There was an error, please try again later",
@@ -81,6 +93,7 @@ const useGetAllHadith = (
           });
         }
       },
+
       ...options,
     },
   );
