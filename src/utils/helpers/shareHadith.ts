@@ -8,534 +8,514 @@ declare global {
         useCORS: boolean;
         logging: boolean;
         allowTaint: boolean;
-        onclone: (event: Document) => void;
+        onclone: (doc: Document) => void;
       },
     ) => Promise<HTMLCanvasElement>;
   }
 }
 
-export const directDownload = async (
-  modalRef: React.RefObject<HTMLDivElement | null>,
-): Promise<void> => {
-  if (!modalRef.current) return;
+// ─── Selectors ────────────────────────────────────────────────────────────────
 
-  // Store all modified elements and their original styles
-  // Use a more specific approach for handling CSS properties
-  const modifiedElements = new Map<HTMLElement, Record<string, string>>();
+const SELECTORS = {
+  buttonSection:
+    '[class*="px-6 pt-4 border-t"], [class*="px-3 sm:px-6 pt-3 sm:pt-4 border-t"]',
+  bookmarkButton:
+    ".text-lg.text-gray-400.hover\\:text-yellow-500, .text-lg.sm\\:text-lg.text-gray-400.hover\\:text-yellow-500",
+  keywordsSection:
+    ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center",
+  scrollableDiv:
+    ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\], .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto.max-h-\\[60vh\\].sm\\:max-h-\\[70vh\\]",
+  headerArea:
+    ".flex.justify-between.items-center.p-6, .flex.justify-between.items-center.p-3.sm\\:p-6",
+  mainContent:
+    ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto, .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto",
+  sourceText: ".text-sm.text-gray-400, .text-xs.sm\\:text-sm.text-gray-400",
+} as const;
 
-  // Helper to safely get and set CSS properties
-  const getCssPropertyValue = (element: HTMLElement, prop: string): string => {
-    return element.style.getPropertyValue(prop);
-  };
+// ─── StyleManager ─────────────────────────────────────────────────────────────
 
-  const setCssPropertyValue = (
-    element: HTMLElement,
-    prop: string,
-    value: string,
-  ): void => {
-    element.style.setProperty(prop, value);
-  };
+/**
+ * Saves and restores inline styles on DOM elements so we can temporarily
+ * mutate them for html2canvas without leaving side-effects.
+ */
+class StyleManager {
+  private snapshot = new Map<HTMLElement, Record<string, string>>();
 
-  // Helper to save original style
-  const saveOriginalStyle = (element: HTMLElement, styleProps: string[]) => {
-    const originalStyles: Record<string, string> = {};
-    styleProps.forEach((prop) => {
-      // Convert camelCase to kebab-case for CSS properties
-      const kebabProp = prop.replace(/([A-Z])/g, "-$1").toLowerCase();
-      originalStyles[prop] = getCssPropertyValue(element, kebabProp);
-    });
-    modifiedElements.set(element, originalStyles);
-  };
+  save(element: HTMLElement, props: string[]): void {
+    const saved: Record<string, string> = {};
+    for (const prop of props) {
+      saved[prop] = element.style.getPropertyValue(this.toKebab(prop));
+    }
+    this.snapshot.set(element, saved);
+  }
 
-  // Helper to restore original style
-  const restoreOriginalStyle = () => {
-    modifiedElements.forEach((originalStyles, element) => {
-      if (element) {
-        Object.keys(originalStyles).forEach((prop) => {
-          // Convert camelCase to kebab-case for CSS properties
-          const kebabProp = prop.replace(/([A-Z])/g, "-$1").toLowerCase();
-          // First clear any inline style
-          setCssPropertyValue(element, kebabProp, "");
-        });
-        // Force a reflow
-        void element.offsetHeight;
-        // Then apply original if needed (if not empty)
-        Object.keys(originalStyles).forEach((prop) => {
-          if (originalStyles[prop]) {
-            // Convert camelCase to kebab-case for CSS properties
-            const kebabProp = prop.replace(/([A-Z])/g, "-$1").toLowerCase();
-            setCssPropertyValue(element, kebabProp, originalStyles[prop]);
-          }
-        });
+  restoreAll(): void {
+    this.snapshot.forEach((saved, el) => {
+      if (!el) return;
+      // Clear every saved prop first so inherited styles can re-apply.
+      for (const prop of Object.keys(saved)) {
+        el.style.removeProperty(this.toKebab(prop));
+      }
+      void el.offsetHeight; // force reflow
+      // Re-apply only props that had an explicit inline value.
+      for (const [prop, value] of Object.entries(saved)) {
+        if (value) el.style.setProperty(this.toKebab(prop), value);
       }
     });
-  };
+    this.snapshot.clear();
+  }
 
-  try {
-    // Find elements to temporarily hide or modify
-    const buttonSection = modalRef.current.querySelector(
-      '[class*="px-6 pt-4 border-t"], [class*="px-3 sm:px-6 pt-3 sm:pt-4 border-t"]',
-    ) as HTMLElement | null;
+  private toKebab(prop: string): string {
+    return prop.replace(/([A-Z])/g, "-$1").toLowerCase();
+  }
+}
 
-    const bookmarkButton = modalRef.current.querySelector(
-      ".text-lg.text-gray-400.hover\\:text-yellow-500, .text-lg.sm\\:text-lg.text-gray-400.hover\\:text-yellow-500",
-    ) as HTMLElement | null;
+// ─── ImageDownloader ──────────────────────────────────────────────────────────
 
-    // Add close button
-    const closeButton = document.createElement("button");
-    closeButton.className =
-      "p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors";
-    closeButton.innerHTML = `
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      </svg>
-    `;
+export class ImageDownloader {
+  private styles = new StyleManager();
+  private root: HTMLDivElement;
 
-    // Find keywords section to hide
-    const keywordsSection = modalRef.current.querySelector(
-      ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center",
-    ) as HTMLElement | null;
+  constructor(private modalRef: React.RefObject<HTMLDivElement | null>) {
+    if (!this.modalRef.current) throw new Error("modalRef is not mounted");
+    this.root = this.modalRef.current;
+  }
 
-    // Find the scrollable content div
-    const scrollableDiv = modalRef.current.querySelector(
-      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto.max-h-\\[70vh\\], .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto.max-h-\\[60vh\\].sm\\:max-h-\\[70vh\\]",
-    ) as HTMLElement | null;
+  // ── Public entry point ──────────────────────────────────────────────────────
 
-    // Save original styles before modifying them
-    if (scrollableDiv) {
-      saveOriginalStyle(scrollableDiv, ["overflowY", "maxHeight"]);
-      scrollableDiv.style.overflowY = "visible";
-      scrollableDiv.style.maxHeight = "none";
+  async download(): Promise<void> {
+    const loading = this.showLoading();
+    try {
+      this.prepareForCapture();
+      await this.ensureHtml2Canvas();
+
+      const container = this.buildGradientContainer();
+      document.body.appendChild(container);
+      await this.wait(300); // let styles settle
+
+      const canvas = await this.capture(container);
+      document.body.removeChild(container);
+
+      const dataUrl = canvas.toDataURL("image/png", 1.0);
+      this.showPreviewModal(dataUrl);
+    } catch (err) {
+      console.error("ImageDownloader error:", err);
+      alert("There was an error generating the image. Please try again.");
+    } finally {
+      this.styles.restoreAll();
+      loading.remove();
     }
+  }
 
-    if (buttonSection) {
-      saveOriginalStyle(buttonSection, ["display"]);
-      buttonSection.style.display = "none";
-    }
+  // ── DOM preparation ─────────────────────────────────────────────────────────
 
-    if (keywordsSection) {
-      saveOriginalStyle(keywordsSection, ["display"]);
-      keywordsSection.style.display = "none";
-    }
+  private prepareForCapture(): void {
+    const hide = (selector: string) => {
+      const el = this.root.querySelector<HTMLElement>(selector);
+      if (!el) return;
+      this.styles.save(el, ["display"]);
+      el.style.display = "none";
+    };
 
-    if (bookmarkButton) {
-      saveOriginalStyle(bookmarkButton, ["display"]);
-      bookmarkButton.style.display = "none";
-    }
+    hide(SELECTORS.buttonSection);
+    hide(SELECTORS.bookmarkButton);
+    hide(SELECTORS.keywordsSection);
 
-    if (closeButton) {
-      saveOriginalStyle(closeButton, ["display"]);
-      closeButton.style.display = "none";
-    }
-
-    // Load html2canvas if needed
-    if (!window.html2canvas) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = "https://html2canvas.hertzen.com/dist/html2canvas.min.js";
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-    }
-
-    const orderedLists = modalRef.current.querySelectorAll("ol");
-    const orderedListItems = modalRef.current.querySelectorAll("ol > li");
-
-    // Save original styles for lists and list items
-    orderedLists.forEach((ol) => {
-      const element = ol as HTMLElement;
-      saveOriginalStyle(element, ["listStyleType", "paddingLeft"]);
-      element.style.listStyleType = "decimal";
-      element.style.paddingLeft = "20px";
-    });
-
-    orderedListItems.forEach((li) => {
-      const element = li as HTMLElement;
-      saveOriginalStyle(element, ["position", "paddingLeft", "marginBottom"]);
-      element.style.position = "relative";
-      element.style.paddingLeft = "15px";
-      element.style.marginBottom = "10px";
-    });
-
-    // Create a temporary container for the gradient background
-    const gradientContainer = document.createElement("div");
-    gradientContainer.style.width = "1200px";
-    gradientContainer.style.minHeight = "800px";
-    gradientContainer.style.position = "fixed";
-    gradientContainer.style.left = "-9999px";
-    gradientContainer.style.top = "-9999px";
-    gradientContainer.style.background =
-      "linear-gradient(135deg, #fde047 0%, #fb923c 100%)";
-    gradientContainer.style.padding = "60px";
-    gradientContainer.style.boxSizing = "border-box";
-    gradientContainer.style.display = "flex";
-    gradientContainer.style.justifyContent = "center";
-    gradientContainer.style.alignItems = "center";
-
-    // Create a white card for the content
-    const whiteCard = document.createElement("div");
-    whiteCard.style.backgroundColor = "white";
-    whiteCard.style.borderRadius = "24px";
-    whiteCard.style.boxShadow = "0 10px 25px -5px rgba(0, 0, 0, 0.1)";
-    whiteCard.style.padding = "40px";
-    whiteCard.style.boxSizing = "border-box";
-    whiteCard.style.width = "100%";
-    whiteCard.style.maxWidth = "800px";
-
-    // Clone the modal content
-    const contentClone = modalRef.current.cloneNode(true) as HTMLElement;
-
-    // Extract the main content area from the clone
-    const mainContent = contentClone.querySelector(
-      ".p-4.px-6\\.5.pt-2\\.5.overflow-y-auto, .p-3.sm\\:p-4.sm\\:px-6.sm\\:pt-2\\.5.overflow-y-auto",
+    const scrollable = this.root.querySelector<HTMLElement>(
+      SELECTORS.scrollableDiv,
     );
-    if (mainContent) {
-      // Extract the title from the header section
-      const headerArea = contentClone.querySelector(
-        ".flex.justify-between.items-center.p-6, .flex.justify-between.items-center.p-3.sm\\:p-6",
-      );
-      const titleElement = headerArea?.querySelector("h2") || null;
-
-      if (titleElement) {
-        // Create a new heading element for the white card
-        const heading = document.createElement("h1");
-        heading.textContent = titleElement.textContent || "";
-        heading.style.fontSize = "28px";
-        heading.style.fontWeight = "600";
-        heading.style.marginBottom = "10px";
-        heading.style.color = "#111827";
-        whiteCard.appendChild(heading);
-
-        // Add the source if available
-        const sourceElement = headerArea?.querySelector(
-          ".text-sm.text-gray-400, .text-xs.sm\\:text-sm.text-gray-400",
-        );
-        if (sourceElement) {
-          const sourceText = document.createElement("p");
-          sourceText.textContent = sourceElement.textContent || "";
-          sourceText.style.fontSize = "14px";
-          sourceText.style.color = "#6B7280";
-          sourceText.style.marginBottom = "20px";
-          whiteCard.appendChild(sourceText);
-        }
-      }
-
-      // Add a divider
-      const divider = document.createElement("hr");
-      divider.style.border = "none";
-      divider.style.borderTop = "1px solid #E5E7EB";
-      divider.style.margin = "20px 0";
-      whiteCard.appendChild(divider);
-
-      // Remove any buttons or UI elements
-      const buttonsToRemove = mainContent.querySelectorAll(
-        "button, [role='button']",
-      );
-      buttonsToRemove.forEach((button) => {
-        if (button.parentNode) {
-          button.parentNode.removeChild(button);
-        }
-      });
-
-      // Hide keywords section in the clone
-      const keywordsToHide = mainContent.querySelector(
-        ".flex.flex-wrap.pt-6.gap-2.items-center, .flex.flex-wrap.pt-4.sm\\:pt-6.gap-1.sm\\:gap-2.items-center",
-      );
-      if (keywordsToHide && keywordsToHide.parentNode) {
-        keywordsToHide.parentNode.removeChild(keywordsToHide);
-      }
-
-      // Reset styles on the main content
-      (mainContent as HTMLElement).style.padding = "0";
-      (mainContent as HTMLElement).style.maxHeight = "none";
-      (mainContent as HTMLElement).style.overflowY = "visible";
-
-      // Add the content to the white card
-      whiteCard.appendChild(mainContent);
+    if (scrollable) {
+      this.styles.save(scrollable, ["overflowY", "maxHeight"]);
+      scrollable.style.overflowY = "visible";
+      scrollable.style.maxHeight = "none";
     }
 
-    // Add footer with Maktabah Ramadan logo
-    const footerElement = document.createElement("div");
-    footerElement.style.borderTop = "1px solid #E5E7EB";
-    footerElement.style.paddingTop = "20px";
-    footerElement.style.marginTop = "30px";
-    footerElement.style.textAlign = "center";
-    footerElement.style.display = "flex";
-    footerElement.style.justifyContent = "center";
-    footerElement.style.alignItems = "center";
+    this.root.querySelectorAll<HTMLElement>("ol").forEach((ol) => {
+      this.styles.save(ol, ["listStyleType", "paddingLeft"]);
+      ol.style.listStyleType = "decimal";
+      ol.style.paddingLeft = "20px";
+    });
 
-    footerElement.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; line-height: 1;">
-        <span style="font-size: 20px; margin-right: 6px; color: #333; display: inline-block;">☪</span>
-        <span style="font-weight: 600; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: inline-block;">
-          <span style="color: #000000; font-size: 17px;">Maktabah</span>
-          <span style="color: #8b5cf6; font-size: 17px;">Ramadan</span>
-        </span>
-      </div>
-    `;
+    this.root.querySelectorAll<HTMLElement>("ol > li").forEach((li) => {
+      this.styles.save(li, ["position", "paddingLeft", "marginBottom"]);
+      li.style.position = "relative";
+      li.style.paddingLeft = "15px";
+      li.style.marginBottom = "10px";
+    });
+  }
 
-    whiteCard.appendChild(footerElement);
-    gradientContainer.appendChild(whiteCard);
-    document.body.appendChild(gradientContainer);
+  // ── Canvas capture ──────────────────────────────────────────────────────────
 
-    // Wait for styles to apply
-    await new Promise((resolve) => setTimeout(resolve, 200));
-
-    // Add a loading indicator
-    const loadingIndicator = document.createElement("div");
-    loadingIndicator.style.position = "fixed";
-    loadingIndicator.style.top = "50%";
-    loadingIndicator.style.left = "50%";
-    loadingIndicator.style.transform = "translate(-50%, -50%)";
-    loadingIndicator.style.padding = "15px 25px";
-    loadingIndicator.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
-    loadingIndicator.style.color = "white";
-    loadingIndicator.style.borderRadius = "8px";
-    loadingIndicator.style.zIndex = "99999";
-    loadingIndicator.style.fontSize = "14px";
-    loadingIndicator.style.fontWeight = "500";
-    loadingIndicator.innerHTML = "Generating image...";
-    document.body.appendChild(loadingIndicator);
-
-    // Capture the styled container
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    const canvas = await window.html2canvas(gradientContainer, {
+  private capture(container: HTMLElement): Promise<HTMLCanvasElement> {
+    return window.html2canvas(container, {
       allowTaint: true,
       useCORS: true,
       scale: 2,
       backgroundColor: null,
       logging: false,
-      onclone: (clonedDoc) => {
-        // Ensure ordered lists are visible in the clone
-        const clonedLists = clonedDoc.querySelectorAll("ol");
-        clonedLists.forEach((ol) => {
-          (ol as HTMLElement).style.listStyleType = "decimal";
-          (ol as HTMLElement).style.paddingLeft = "40px";
-        });
+      onclone: (doc) => this.patchClone(doc),
+    });
+  }
 
-        const clonedListItems = clonedDoc.querySelectorAll("li");
-        clonedListItems.forEach((li) => {
-          (li as HTMLElement).style.marginBottom = "12px";
-          (li as HTMLElement).style.color = "#374151";
-        });
-
-        // Handle oklch colors to prevent parsing errors
-        const allElements = clonedDoc.querySelectorAll("*");
-        allElements.forEach((element) => {
-          const computedStyle = window.getComputedStyle(element);
-          const replacementProps = [
-            "color",
-            "background-color",
-            "border-color",
-          ];
-
-          for (const prop of replacementProps) {
-            const value = computedStyle.getPropertyValue(prop);
-            if (value && value.includes("oklch")) {
-              if (prop === "color") {
-                (element as HTMLElement).style.color = "#333333";
-              } else if (prop === "background-color") {
-                (element as HTMLElement).style.backgroundColor = "#ffffff";
-              } else if (prop === "border-color") {
-                (element as HTMLElement).style.borderColor = "#cccccc";
-              }
-            }
-          }
-        });
-      },
+  private patchClone(doc: Document): void {
+    doc.querySelectorAll<HTMLElement>("ol").forEach((ol) => {
+      ol.style.listStyleType = "decimal";
+      ol.style.paddingLeft = "40px";
     });
 
-    // Clean up: Remove the temporary container
-    if (gradientContainer.parentNode) {
-      document.body.removeChild(gradientContainer);
-    }
+    doc.querySelectorAll<HTMLElement>("li").forEach((li) => {
+      li.style.marginBottom = "12px";
+      li.style.color = "#374151";
+    });
 
-    // Restore all original styles by removing inline styles completely
-    restoreOriginalStyle();
-
-    // Force DOM reflow to ensure styles are properly applied
-    if (modalRef.current) {
-      void modalRef.current.offsetHeight;
-    }
-
-    // Remove the loading indicator
-    if (loadingIndicator.parentNode) {
-      document.body.removeChild(loadingIndicator);
-    }
-
-    // Get data URL for the image
-    const dataUrl = canvas.toDataURL("image/png", 1.0);
-
-    // Create a modal container that will adapt to screen size
-    const modalContainer = document.createElement("div");
-    modalContainer.className =
-      "fixed inset-0 flex items-center justify-center p-2 sm:p-4 z-50";
-    modalContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
-    modalContainer.style.backdropFilter = "blur(5px)";
-    modalContainer.style.opacity = "0";
-    modalContainer.style.transition = "opacity 0.3s ease";
-
-    // Create a modal content div that will use Tailwind classes
-    const modalContent = document.createElement("div");
-    modalContent.className =
-      "bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden transform scale-95 transition-all duration-300";
-    modalContent.style.opacity = "0";
-    modalContent.style.transition =
-      "transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)";
-
-    // Create header with responsive classes
-    const modalHeader = document.createElement("div");
-    modalHeader.className =
-      "flex justify-between items-center p-3 sm:p-6 border-b border-gray-100";
-
-    // Add title
-    const titleDiv = document.createElement("div");
-    titleDiv.className = "flex items-center";
-    titleDiv.innerHTML = `
-      <h2 class="text-lg sm:text-2xl font-bold">
-        <span class="text-lg sm:text-2xl mr-1 sm:mr-2" style="color: #333;">☪</span>
-        <span class="text-black">Maktabah</span>
-        <span class="text-violet-500">Ramadan</span>
-      </h2>
-    `;
-
-    // Create body with responsive classes
-    const modalBody = document.createElement("div");
-    modalBody.className =
-      "p-3 sm:p-6 overflow-y-auto max-h-[60vh] sm:max-h-[65vh]";
-
-    // Add image
-    const img = new Image();
-    img.className = "w-full rounded-lg border border-gray-200 shadow-sm";
-    img.style.opacity = "0";
-    img.style.transition = "opacity 0.3s ease";
-    img.onload = function () {
-      img.style.opacity = "1";
+    // Replace oklch colours that html2canvas can't parse.
+    const COLOR_FALLBACKS: Record<string, string> = {
+      color: "#333333",
+      "background-color": "#ffffff",
+      "border-color": "#cccccc",
     };
+
+    doc.querySelectorAll<HTMLElement>("*").forEach((el) => {
+      const cs = window.getComputedStyle(el);
+      for (const [prop, fallback] of Object.entries(COLOR_FALLBACKS)) {
+        if (cs.getPropertyValue(prop).includes("oklch")) {
+          el.style.setProperty(prop, fallback);
+        }
+      }
+    });
+  }
+
+  // ── Gradient container builder ──────────────────────────────────────────────
+
+  private buildGradientContainer(): HTMLElement {
+    const container = el("div", {
+      width: "1200px",
+      minHeight: "800px",
+      position: "fixed",
+      left: "-9999px",
+      top: "-9999px",
+      background: "linear-gradient(135deg, #fde047 0%, #fb923c 100%)",
+      padding: "60px",
+      boxSizing: "border-box",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    });
+
+    const card = el("div", {
+      backgroundColor: "white",
+      borderRadius: "24px",
+      boxShadow: "0 10px 25px -5px rgba(0,0,0,.1)",
+      padding: "40px",
+      boxSizing: "border-box",
+      width: "100%",
+      maxWidth: "800px",
+    });
+
+    this.populateCard(card);
+    container.appendChild(card);
+    return container;
+  }
+
+  private populateCard(card: HTMLElement): void {
+    const clone = this.root.cloneNode(true) as HTMLElement;
+    const headerArea = clone.querySelector(SELECTORS.headerArea);
+    const mainContent = clone.querySelector<HTMLElement>(SELECTORS.mainContent);
+
+    // Title
+    const title = headerArea?.querySelector("h2");
+    if (title) {
+      const h1 = el("h1", {
+        fontSize: "28px",
+        fontWeight: "600",
+        marginBottom: "10px",
+        color: "#111827",
+      });
+      h1.textContent = title.textContent ?? "";
+      card.appendChild(h1);
+    }
+
+    // Source
+    const source = headerArea?.querySelector<HTMLElement>(SELECTORS.sourceText);
+    if (source) {
+      const p = el("p", {
+        fontSize: "14px",
+        color: "#6B7280",
+        marginBottom: "20px",
+      });
+      p.textContent = source.textContent ?? "";
+      card.appendChild(p);
+    }
+
+    // Divider
+    const hr = el("hr", {
+      border: "none",
+      borderTop: "1px solid #E5E7EB",
+      margin: "20px 0",
+    });
+    card.appendChild(hr);
+
+    // Main content
+    if (mainContent) {
+      mainContent
+        .querySelectorAll("button, [role='button']")
+        .forEach((b) => b.remove());
+
+      mainContent.querySelector(SELECTORS.keywordsSection)?.remove();
+
+      mainContent.style.padding = "0";
+      mainContent.style.maxHeight = "none";
+      mainContent.style.overflowY = "visible";
+
+      card.appendChild(mainContent);
+    }
+
+    // Footer
+    const footer = el("div", {
+      borderTop: "1px solid #E5E7EB",
+      paddingTop: "20px",
+      marginTop: "30px",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    });
+    footer.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;line-height:1;">
+        <span style="font-size:20px;margin-right:6px;color:#333;">☪</span>
+        <span style="font-weight:600;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+          <span style="color:#000;font-size:17px;">Maktabah</span>
+          <span style="color:#8b5cf6;font-size:17px;">Ramadan</span>
+        </span>
+      </div>`;
+    card.appendChild(footer);
+  }
+
+  // ── Preview modal ───────────────────────────────────────────────────────────
+
+  private showPreviewModal(dataUrl: string): void {
+    const overlay = el("div", {
+      position: "fixed",
+      inset: "0",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "8px",
+      zIndex: "50",
+      backgroundColor: "rgba(0,0,0,.75)",
+      backdropFilter: "blur(5px)",
+      opacity: "0",
+      transition: "opacity .3s ease",
+    });
+
+    const panel = el("div", {
+      backgroundColor: "white",
+      borderRadius: "12px",
+      boxShadow: "0 20px 40px rgba(0,0,0,.2)",
+      width: "100%",
+      maxWidth: "48rem",
+      maxHeight: "90vh",
+      overflow: "hidden",
+      transform: "scale(.95)",
+      opacity: "0",
+      transition:
+        "transform .3s cubic-bezier(.4,0,.2,1), opacity .3s cubic-bezier(.4,0,.2,1)",
+    });
+
+    // Header
+    const header = el("div", {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "16px 24px",
+      borderBottom: "1px solid #F3F4F6",
+    });
+    header.innerHTML = `
+      <h2 style="font-size:1.25rem;font-weight:700;display:flex;align-items:center;gap:6px;">
+        <span style="color:#333;">☪</span>
+        <span style="color:#000;">Maktabah</span>
+        <span style="color:#8b5cf6;">Ramadan</span>
+      </h2>`;
+
+    const closeBtn = this.buildCloseButton(() =>
+      this.dismissModal(overlay, panel),
+    );
+    header.appendChild(closeBtn);
+
+    // Body
+    const body = el("div", {
+      padding: "16px 24px",
+      overflowY: "auto",
+      maxHeight: "65vh",
+    });
+    const img = document.createElement("img");
+    img.style.cssText =
+      "width:100%;border-radius:8px;border:1px solid #E5E7EB;opacity:0;transition:opacity .3s ease;";
+    img.onload = () => (img.style.opacity = "1");
     img.src = dataUrl;
+    body.appendChild(img);
 
-    // Create footer with responsive classes
-    const modalFooter = document.createElement("div");
-    modalFooter.className =
-      "p-3 sm:p-6 pt-2 sm:pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-2 sm:gap-4 justify-center";
+    // Footer
+    const footer = el("div", {
+      padding: "12px 24px",
+      borderTop: "1px solid #F3F4F6",
+      display: "flex",
+      gap: "12px",
+      justifyContent: "center",
+      flexWrap: "wrap",
+    });
+    footer.appendChild(this.buildDownloadButton(dataUrl));
+    if (this.canShare()) footer.appendChild(this.buildShareButton(dataUrl));
 
-    // Add download button
-    const downloadBtn = document.createElement("a");
-    downloadBtn.className =
-      "flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm sm:text-base transition-colors w-full sm:w-auto";
-    downloadBtn.href = dataUrl;
-    downloadBtn.download = "hadith-maktabah-ramadan.png";
-    downloadBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="7 10 12 15 17 10"></polyline>
-        <line x1="12" y1="15" x2="12" y2="3"></line>
-      </svg>
-      Download Image
-    `;
+    panel.append(header, body, footer);
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
 
-    // Add share button (only for mobile devices or if Web Share API is supported)
-    const shareBtn = document.createElement("button");
-    shareBtn.className =
-      "flex items-center justify-center px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg text-sm sm:text-base transition-colors w-full sm:w-auto";
-    shareBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="18" cy="5" r="3"></circle>
-        <circle cx="6" cy="12" r="3"></circle>
-        <circle cx="18" cy="19" r="3"></circle>
-        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-      </svg>
-      Share
-    `;
+    // Animate in
+    requestAnimationFrame(() =>
+      setTimeout(() => {
+        overlay.style.opacity = "1";
+        panel.style.opacity = "1";
+        panel.style.transform = "scale(1)";
+      }, 50),
+    );
+  }
 
-    // Handle sharing when supported
-    shareBtn.onclick = async () => {
+  private dismissModal(overlay: HTMLElement, panel: HTMLElement): void {
+    overlay.style.opacity = "0";
+    panel.style.transform = "scale(.95)";
+    panel.style.opacity = "0";
+    setTimeout(() => overlay.remove(), 300);
+  }
+
+  private buildCloseButton(onClick: () => void): HTMLElement {
+    const btn = el("button", {
+      padding: "6px",
+      color: "#9CA3AF",
+      background: "none",
+      border: "none",
+      cursor: "pointer",
+    });
+    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>`;
+    btn.onclick = onClick;
+    return btn;
+  }
+
+  private buildDownloadButton(dataUrl: string): HTMLElement {
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = "hadith-maktabah-ramadan.png";
+    a.style.cssText = btnStyle("#4F46E5", "#fff");
+    a.innerHTML = `${downloadIcon()} Download Image`;
+    return a;
+  }
+
+  private buildShareButton(dataUrl: string): HTMLElement {
+    const btn = el("button", {});
+    btn.style.cssText = btnStyle("#F3F4F6", "#374151");
+    btn.innerHTML = `${shareIcon()} Share`;
+    btn.onclick = async () => {
       try {
-        const blob = await fetch(dataUrl).then((r) => r.blob());
+        const blob = await (await fetch(dataUrl)).blob();
         const file = new File([blob], "hadith-maktabah-ramadan.png", {
           type: "image/png",
         });
-
-        if (
-          navigator.share &&
-          navigator.canShare &&
-          navigator.canShare({ files: [file] })
-        ) {
+        if (navigator.canShare?.({ files: [file] })) {
           await navigator.share({
             title: "Hadith from Maktabah Ramadan",
             files: [file],
           });
         } else {
           alert(
-            "Web Share API is not supported in your browser. Please use the download button instead.",
+            "Sharing is not supported in this browser. Please download instead.",
           );
         }
-      } catch (error) {
-        console.error("Error sharing:", error);
+      } catch (err) {
+        console.error("Share error:", err);
       }
     };
+    return btn;
+  }
 
-    // Close button functionality
-    closeButton.onclick = () => {
-      modalContainer.style.opacity = "0";
-      modalContent.style.transform = "scale(0.95)";
-      modalContent.style.opacity = "0";
+  // ── Utilities ───────────────────────────────────────────────────────────────
 
-      setTimeout(() => {
-        if (document.body.contains(modalContainer)) {
-          document.body.removeChild(modalContainer);
-        }
-
-        // Force UI update to ensure proper layout on mobile
-        if (modalRef.current) {
-          void modalRef.current.offsetHeight;
-        }
-      }, 300);
-    };
-
-    // Assemble the modal
-    modalHeader.appendChild(titleDiv);
-    modalHeader.appendChild(closeButton);
-
-    modalBody.appendChild(img);
-
-    modalFooter.appendChild(downloadBtn);
-
-    // Only add share button if Web Share API is likely supported or on mobile
-    if (
+  private canShare(): boolean {
+    return (
       !!navigator.share ||
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent,
       )
-    ) {
-      modalFooter.appendChild(shareBtn);
-    }
-
-    modalContent.appendChild(modalHeader);
-    modalContent.appendChild(modalBody);
-    modalContent.appendChild(modalFooter);
-
-    modalContainer.appendChild(modalContent);
-    document.body.appendChild(modalContainer);
-
-    // Force a reflow and animate in
-    void modalContainer.offsetWidth;
-
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        modalContainer.style.opacity = "1";
-        modalContent.style.opacity = "1";
-        modalContent.style.transform = "scale(1)";
-      }, 50);
-    });
-  } catch (error) {
-    console.error("Error capturing and downloading image:", error);
-    alert("There was an error generating the image. Please try again.");
-
-    // Ensure styles are restored even in case of error
-    restoreOriginalStyle();
+    );
   }
-};
+
+  private showLoading(): HTMLElement {
+    const div = el("div", {
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%,-50%)",
+      padding: "15px 25px",
+      backgroundColor: "rgba(0,0,0,.7)",
+      color: "white",
+      borderRadius: "8px",
+      zIndex: "99999",
+      fontSize: "14px",
+      fontWeight: "500",
+    });
+    div.textContent = "Generating image…";
+    document.body.appendChild(div);
+    return div;
+  }
+
+  private async ensureHtml2Canvas(): Promise<void> {
+    if (window.html2canvas !== undefined) return;
+    await new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://html2canvas.hertzen.com/dist/html2canvas.min.js";
+      script.onload = () => resolve();
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  private wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}
+
+// ─── Standalone helpers ────────────────────────────────────────────────────────
+
+/** Creates an HTMLElement with inline styles applied. */
+function el<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  styles: Partial<CSSStyleDeclaration>,
+): HTMLElementTagNameMap[K] {
+  const element = document.createElement(tag);
+  Object.assign(element.style, styles);
+  return element;
+}
+
+function btnStyle(bg: string, color: string): string {
+  return `display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:${bg};color:${color};font-weight:500;border-radius:8px;font-size:14px;cursor:pointer;border:none;text-decoration:none;`;
+}
+
+function downloadIcon(): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>`;
+}
+
+function shareIcon(): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>`;
+}
+
+// ─── Convenience wrapper (drop-in replacement for the old function) ────────────
+
+export const directDownload = (
+  modalRef: React.RefObject<HTMLDivElement | null>,
+): Promise<void> => new ImageDownloader(modalRef).download();
