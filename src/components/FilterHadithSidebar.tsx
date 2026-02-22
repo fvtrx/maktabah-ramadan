@@ -22,12 +22,11 @@ const FilterHadithSidebar = ({ isSidebarOpen, toggleSidebar }: Props) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isMounted, setIsMounted] = useState(isSidebarOpen);
   const [isVisible, setIsVisible] = useState(isSidebarOpen);
-  const [isDesktop, setIsDesktop] = useState(
-    () => window.matchMedia("(min-width: 768px)").matches,
-  );
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
