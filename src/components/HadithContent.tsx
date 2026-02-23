@@ -64,7 +64,7 @@ export const HadithContent: React.FC<HadithContentProps> = ({
 
       {/* Hadith list */}
       {filteredHadiths.length > 0 && (
-        <div className="space-y-3 sm:space-y-6">
+        <div className="space-y-3 sm:space-y-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredHadiths.map((hadith) => (
             <HadithCard
               key={hadith?.id}
